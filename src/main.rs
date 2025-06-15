@@ -20,8 +20,8 @@ fn main() {
     let processer = Processer::new(cmd_args);
     let cmd = match mode.as_str() {
         "run" => processer.nix_run(),
-        "shell" => todo!(),
-        "develop" => todo!(),
+        "shell" => processer.nix_shell(),
+        "develop" => processer.nix_develop(),
         _ => quit(),
     };
 

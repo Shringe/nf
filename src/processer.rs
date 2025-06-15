@@ -35,6 +35,38 @@ impl Processer {
 
         out.join(" ")
     }
+
+    pub fn nix_shell(&self) -> String {
+        let mut args = self.args.clone();
+        let mut out = args![ "nix", "shell" ];
+
+        let len = self.args.len();
+
+        if len > 0 {
+            let pkg = args.remove(0);
+
+            // To avoid nixpkgs#--arguement
+            if !pkg.starts_with("-") {
+                out.push(format!("nixpkgs#{}", pkg));
+            } else {
+                out.push(pkg);
+            }
+
+            for a in args {
+                out.push(a);
+            }
+        }
+
+        if !self.args.contains(&"--command".to_string()) {
+            out.extend(args![ "--command", "fish" ]);
+        }
+
+        out.join(" ")
+    }
+
+    pub fn nix_develop(&self) -> String {
+        todo!()
+    }
 }
 
 #[cfg(test)]
@@ -86,5 +118,45 @@ mod tests {
         let p = Processer::new(args);
 
         assert_eq!(p.nix_run(), "nix run nixpkgs#eza to_nix_run -- to_command");
+    }
+
+    #[test]
+    fn nix_shell() {
+        let args = args![];
+        let p = Processer::new(args);
+
+        assert_eq!(p.nix_shell(), "nix shell --command fish");
+    }
+
+    #[test]
+    fn nix_shell_nixpkg() {
+        let args = args![ "eza" ];
+        let p = Processer::new(args);
+
+        assert_eq!(p.nix_shell(), "nix shell nixpkgs#eza --command fish");
+    }
+
+    #[test]
+    fn nix_shell_with_arg() {
+        let args = args![ "--help" ];
+        let p = Processer::new(args);
+
+        assert_eq!(p.nix_shell(), "nix shell --help --command fish");
+    }
+
+    #[test]
+    fn nix_shell_with_arg_nixpkg() {
+        let args = args![ "eza", "--help" ];
+        let p = Processer::new(args);
+
+        assert_eq!(p.nix_shell(), "nix shell nixpkgs#eza --help --command fish");
+    }
+
+    #[test]
+    fn nix_shell_with_shell_specified() {
+        let args = args![ "--command", "zsh" ];
+        let p = Processer::new(args);
+
+        assert_eq!(p.nix_shell(), "nix shell --command zsh");
     }
 }

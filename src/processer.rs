@@ -26,22 +26,20 @@ impl Processer {
     }
 
     pub fn nix_run(&self) -> String {
-        match self.args.len() {
-            0 => return "nix run".to_string(),
-            1 => return format!("nix run nixpkgs#{}", self.args[0]),
-            _ => {},
-        }
-
         let mut args = self.args.clone();
         let mut out = args![ "nix", "run" ];
-        out.push(Self::format_nixpkg(args.remove(0)));
 
-        if !self.args.contains(&"--".to_string()) {
-            out.push("--".to_string());
-        }
+        if args.len() > 0 {
+            out.push(Self::format_nixpkg(args.remove(0)));
+            if !args.is_empty() {
+                if !self.args.contains(&"--".to_string()) {
+                    out.push("--".to_string());
+                }
 
-        for a in args {
-            out.push(a);
+                for a in args {
+                    out.push(a);
+                }
+            }
         }
 
         out.join(" ")
@@ -51,9 +49,7 @@ impl Processer {
         let mut args = self.args.clone();
         let mut out = args![ "nix", "shell" ];
 
-        let len = self.args.len();
-
-        if len > 0 {
+        if args.len() > 0 {
             let pkg = args.remove(0);
 
             out.push(Self::format_nixpkg(pkg));
@@ -74,9 +70,7 @@ impl Processer {
         let mut args = self.args.clone();
         let mut out = args![ "nix", "develop" ];
 
-        let len = self.args.len();
-
-        if len > 0 {
+        if args.len() > 0 {
             let pkg = args.remove(0);
 
             out.push(Self::format_nixpkg(pkg));

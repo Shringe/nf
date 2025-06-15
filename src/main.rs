@@ -22,7 +22,6 @@ fn main() {
         _ => quit(),
     };
 
-    // let _ = execute_to_stdout(&cmd);
     execute_to_stdout(&cmd);
 }
 

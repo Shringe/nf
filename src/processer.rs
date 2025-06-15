@@ -50,9 +50,7 @@ impl Processer {
         let mut out = args![ "nix", "shell" ];
 
         if args.len() > 0 {
-            let pkg = args.remove(0);
-
-            out.push(Self::format_nixpkg(pkg));
+            out.push(Self::format_nixpkg(args.remove(0)));
 
             for a in args {
                 out.push(a);
@@ -71,9 +69,7 @@ impl Processer {
         let mut out = args![ "nix", "develop" ];
 
         if args.len() > 0 {
-            let pkg = args.remove(0);
-
-            out.push(Self::format_nixpkg(pkg));
+            out.push(Self::format_nixpkg(args.remove(0)));
 
             for a in args {
                 out.push(a);

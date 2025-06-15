@@ -25,7 +25,6 @@ fn main() {
         _ => quit(),
     };
 
-    println!("{}", cmd);
     let _ = execute_to_stdout(&cmd);
 }
 

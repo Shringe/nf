@@ -14,6 +14,17 @@ impl Processer {
         }
     }
 
+    /// pkg -> nixpkgs#pkg
+    /// Makes sure to avoid treating args as pkgs
+    fn format_nixpkg(pkg: String) -> String {
+        // To avoid nixpkgs#--arguement
+        if !pkg.starts_with("-") {
+            format!("nixpkgs#{}", pkg)
+        } else {
+            pkg
+        }
+    }
+
     pub fn nix_run(&self) -> String {
         match self.args.len() {
             0 => return "nix run".to_string(),
@@ -23,7 +34,7 @@ impl Processer {
 
         let mut args = self.args.clone();
         let mut out = args![ "nix", "run" ];
-        out.push(format!("nixpkgs#{}", args.remove(0)));
+        out.push(Self::format_nixpkg(args.remove(0)));
 
         if !self.args.contains(&"--".to_string()) {
             out.push("--".to_string());
@@ -45,12 +56,7 @@ impl Processer {
         if len > 0 {
             let pkg = args.remove(0);
 
-            // To avoid nixpkgs#--arguement
-            if !pkg.starts_with("-") {
-                out.push(format!("nixpkgs#{}", pkg));
-            } else {
-                out.push(pkg);
-            }
+            out.push(Self::format_nixpkg(pkg));
 
             for a in args {
                 out.push(a);
@@ -73,12 +79,7 @@ impl Processer {
         if len > 0 {
             let pkg = args.remove(0);
 
-            // To avoid nixpkgs#--arguement
-            if !pkg.starts_with("-") {
-                out.push(format!("nixpkgs#{}", pkg));
-            } else {
-                out.push(pkg);
-            }
+            out.push(Self::format_nixpkg(pkg));
 
             for a in args {
                 out.push(a);

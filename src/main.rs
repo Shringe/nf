@@ -5,16 +5,16 @@ use std::process::{ exit, Command };
 
 use processer::Processer;
 
-const HELP: &str = "Usage: nf <MODE> <cmd>";
+const HELP: &str = "Usage: nf <SHELL> <MODE> <cmd>";
 
 fn main() {
-    // Remove one for `nf` binary and one for the selected mode
     let mut args = env::args();
     let _ = args.next(); // skip binary name
+    let shell = args.next().unwrap_or_else(|| quit());
     let mode = args.next().unwrap_or_else(|| quit());
     let cmd_args: Vec<String> = args.collect();
 
-    let processer = Processer::new(cmd_args);
+    let processer = Processer::new(cmd_args, shell);
     let cmd = match mode.as_str() {
         "run" => processer.nix_run(),
         "shell" => processer.nix_shell(),

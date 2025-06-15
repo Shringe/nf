@@ -1,21 +1,18 @@
 mod processer;
 
-use std::{ env, io };
-use std::process::{exit, Command, Stdio};
+use std::env;
+use std::process::{ exit, Command };
 
 use processer::Processer;
 
 const HELP: &str = "Usage: nf <MODE> <cmd>";
 
 fn main() {
-    let mut cmd_args: Vec<String> = env::args().collect();
-    if cmd_args.len() < 2 {
-        quit();
-    }
-
     // Remove one for `nf` binary and one for the selected mode
-    let _ = cmd_args.remove(0);
-    let mode = cmd_args.remove(0);
+    let mut args = env::args();
+    let _ = args.next(); // skip binary name
+    let mode = args.next().unwrap_or_else(|| quit());
+    let cmd_args: Vec<String> = args.collect();
 
     let processer = Processer::new(cmd_args);
     let cmd = match mode.as_str() {
@@ -25,21 +22,32 @@ fn main() {
         _ => quit(),
     };
 
-    let _ = execute_to_stdout(&cmd);
+    // let _ = execute_to_stdout(&cmd);
+    execute_to_stdout(&cmd);
 }
 
+#[inline]
 fn quit() -> ! {
     println!("{}", HELP);
     exit(1);
 }
 
-fn execute_to_stdout(cmd: &str) -> io::Result<()> {
-    Command::new("sh")
-        .arg("-c")
-        .arg(cmd)
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .status()?;
-    Ok(())
+/// Faster but UNIX exclusive
+#[inline]
+#[cfg(unix)]
+fn execute_to_stdout(cmd: &[String]) {
+    use std::os::unix::process::CommandExt;
+    let _ = Command::new(&cmd[0])
+        .args(&cmd[1..])
+        .exec(); // This replaces the current process
 }
 
+#[inline]
+#[cfg(not(unix))]
+fn execute_to_stdout(cmd: &[String]) {
+    use std::process::Stdio;
+    let _ = Command::new(&cmd[0]).args(&cmd[1..])
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status();
+}

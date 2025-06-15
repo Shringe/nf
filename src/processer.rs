@@ -1,8 +1,3 @@
-/// Converts vec![ "a" "b" "c" ] to vec![ "a".to_string() "b".to_string() "c".to_string() ]
-macro_rules! args {
-    ($($x:expr),*) => (vec![$($x.to_string()),*]);
-}
-
 pub struct Processer {
     args: Vec<String>,
 }
@@ -10,81 +5,84 @@ pub struct Processer {
 impl Processer {
     #[inline]
     pub fn new(args: Vec<String>) -> Self {
-        Self {
-            args
-        }
+        Self { args }
     }
 
     /// pkg -> nixpkgs#pkg
-    /// Makes sure to avoid treating args as pkgs
+    /// Avoids treating args as pkgs
     #[inline]
-    fn format_nixpkg(pkg: String) -> String {
-        // To avoid nixpkgs#--arguement
-        if !pkg.starts_with("-") {
-            format!("nixpkgs#{}", pkg)
+    fn format_nixpkg(pkg: &str) -> String {
+        if pkg.starts_with('-') {
+            pkg.to_string()
         } else {
-            pkg
+            format!("nixpkgs#{}", pkg)
         }
+    }
+
+    /// Check if args contain a specific flag
+    #[inline]
+    fn contains_flag(&self, flag: &str) -> bool {
+        self.args.iter().any(|arg| arg == flag)
     }
 
     #[inline]
     pub fn nix_run(&self) -> Vec<String> {
-        let mut args = self.args.clone();
-        let mut out = args![ "nix", "run" ];
-
-        if args.len() > 0 {
-            out.push(Self::format_nixpkg(args.remove(0)));
-            if !args.is_empty() {
-                if !self.args.contains(&"--".to_string()) {
-                    out.push("--".to_string());
-                }
-
-                for a in args {
-                    out.push(a);
-                }
-            }
+        if self.args.is_empty() {
+            return vec!["nix".to_string(), "run".to_string()];
         }
 
+        let mut out = Vec::with_capacity(self.args.len() + 4); // Pre-allocate
+        out.push("nix".to_string());
+        out.push("run".to_string());
+        
+        out.push(Self::format_nixpkg(&self.args[0]));
+        
+        if self.args.len() > 1 {
+            if !self.contains_flag("--") {
+                out.push("--".to_string());
+            }
+
+            out.extend_from_slice(&self.args[1..]);
+        }
+        
         out
     }
 
     #[inline]
     pub fn nix_shell(&self) -> Vec<String> {
-        let mut args = self.args.clone();
-        let mut out = args![ "nix", "shell" ];
-
-        if args.len() > 0 {
-            out.push(Self::format_nixpkg(args.remove(0)));
-
-            for a in args {
-                out.push(a);
-            }
+        let mut out = Vec::with_capacity(self.args.len() + 4); // Pre-allocate
+        out.push("nix".to_string());
+        out.push("shell".to_string());
+        
+        if !self.args.is_empty() {
+            out.push(Self::format_nixpkg(&self.args[0]));
+            out.extend_from_slice(&self.args[1..]);
         }
-
-        if !self.args.contains(&"--command".to_string()) {
-            out.extend(args![ "--command", "fish" ]);
+        
+        if !self.contains_flag("--command") {
+            out.push("--command".to_string());
+            out.push("fish".to_string());
         }
-
+        
         out
     }
 
     #[inline]
     pub fn nix_develop(&self) -> Vec<String> {
-        let mut args = self.args.clone();
-        let mut out = args![ "nix", "develop" ];
-
-        if args.len() > 0 {
-            out.push(Self::format_nixpkg(args.remove(0)));
-
-            for a in args {
-                out.push(a);
-            }
+        let mut out = Vec::with_capacity(self.args.len() + 4); // Pre-allocate
+        out.push("nix".to_string());
+        out.push("develop".to_string());
+        
+        if !self.args.is_empty() {
+            out.push(Self::format_nixpkg(&self.args[0]));
+            out.extend_from_slice(&self.args[1..]);
         }
-
-        if !self.args.contains(&"--command".to_string()) {
-            out.extend(args![ "--command", "fish" ]);
+        
+        if !self.contains_flag("--command") {
+            out.push("--command".to_string());
+            out.push("fish".to_string());
         }
-
+        
         out
     }
 }
@@ -92,6 +90,11 @@ impl Processer {
 #[cfg(test)]
 mod tests {
     use super::Processer;
+
+    /// Converts vec![ "a" "b" "c" ] to vec![ "a".to_string() "b".to_string() "c".to_string() ]
+    macro_rules! args {
+        ($($x:expr),*) => (vec![$($x.to_string()),*]);
+    }
     
     #[test]
     fn nix_run() {

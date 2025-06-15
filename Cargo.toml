@@ -1,5 +1,3 @@
 [package]
 name = "nf"
 edition = "2024"
-
-[dependencies]

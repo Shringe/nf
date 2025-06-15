@@ -14,7 +14,7 @@ impl Processer {
         }
     }
 
-    fn nix_run(&self) -> String {
+    pub fn nix_run(&self) -> String {
         match self.args.len() {
             0 => return "nix run".to_string(),
             1 => return format!("nix run nixpkgs#{}", self.args[0]),

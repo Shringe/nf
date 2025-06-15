@@ -1,11 +1,15 @@
 pub struct Processer {
     args: Vec<String>,
+    shell: String,
 }
 
 impl Processer {
     #[inline]
-    pub fn new(args: Vec<String>) -> Self {
-        Self { args }
+    pub fn new(args: Vec<String>, shell: String) -> Self {
+        Self {
+            args,
+            shell,
+        }
     }
 
     /// pkg -> nixpkgs#pkg
@@ -61,7 +65,7 @@ impl Processer {
         
         if !self.contains_flag("--command") {
             out.push("--command".to_string());
-            out.push("fish".to_string());
+            out.push(self.shell.clone());
         }
         
         out
@@ -80,7 +84,7 @@ impl Processer {
         
         if !self.contains_flag("--command") {
             out.push("--command".to_string());
-            out.push("fish".to_string());
+            out.push(self.shell.clone());
         }
         
         out
@@ -91,6 +95,8 @@ impl Processer {
 mod tests {
     use super::Processer;
 
+    const SHELL: &str = "zsh";
+
     /// Converts vec![ "a" "b" "c" ] to vec![ "a".to_string() "b".to_string() "c".to_string() ]
     macro_rules! args {
         ($($x:expr),*) => (vec![$($x.to_string()),*]);
@@ -99,112 +105,112 @@ mod tests {
     #[test]
     fn nix_run() {
         let args = args![];
-        let p = Processer::new(args);
+        let p = Processer::new(args, SHELL.to_string());
         assert_eq!(p.nix_run(), args!["nix", "run"]);
     }
     
     #[test]
     fn nix_run_nixpkg() {
         let args = args!["eza"];
-        let p = Processer::new(args);
+        let p = Processer::new(args, SHELL.to_string());
         assert_eq!(p.nix_run(), args!["nix", "run", "nixpkgs#eza"]);
     }
     
     #[test]
     fn nix_run_with_arg_nixpkg() {
         let args = args!["eza", "to_nix_run", "--"];
-        let p = Processer::new(args);
+        let p = Processer::new(args, SHELL.to_string());
         assert_eq!(p.nix_run(), args!["nix", "run", "nixpkgs#eza", "to_nix_run", "--"]);
     }
     
     #[test]
     fn nix_run_nixpkg_with_arg() {
         let args = args!["eza", "to_command"];
-        let p = Processer::new(args);
+        let p = Processer::new(args, SHELL.to_string());
         assert_eq!(p.nix_run(), args!["nix", "run", "nixpkgs#eza", "--", "to_command"]);
     }
     
     #[test]
     fn nix_run_nixpkg_with_arg_redundant() {
         let args = args!["eza", "--", "to_command"];
-        let p = Processer::new(args);
+        let p = Processer::new(args, SHELL.to_string());
         assert_eq!(p.nix_run(), args!["nix", "run", "nixpkgs#eza", "--", "to_command"]);
     }
     
     #[test]
     fn nix_run_with_arg_nixpkg_with_arg() {
         let args = args!["eza", "to_nix_run", "--", "to_command"];
-        let p = Processer::new(args);
+        let p = Processer::new(args, SHELL.to_string());
         assert_eq!(p.nix_run(), args!["nix", "run", "nixpkgs#eza", "to_nix_run", "--", "to_command"]);
     }
     
     #[test]
     fn nix_shell() {
         let args = args![];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_shell(), args!["nix", "shell", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_shell(), args!["nix", "shell", "--command", SHELL]);
     }
     
     #[test]
     fn nix_shell_nixpkg() {
         let args = args!["eza"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_shell(), args!["nix", "shell", "nixpkgs#eza", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_shell(), args!["nix", "shell", "nixpkgs#eza", "--command", SHELL]);
     }
     
     #[test]
     fn nix_shell_with_arg() {
         let args = args!["--help"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_shell(), args!["nix", "shell", "--help", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_shell(), args!["nix", "shell", "--help", "--command", SHELL]);
     }
     
     #[test]
     fn nix_shell_with_arg_nixpkg() {
         let args = args!["eza", "--help"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_shell(), args!["nix", "shell", "nixpkgs#eza", "--help", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_shell(), args!["nix", "shell", "nixpkgs#eza", "--help", "--command", SHELL]);
     }
     
     #[test]
     fn nix_shell_with_shell_specified() {
-        let args = args!["--command", "zsh"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_shell(), args!["nix", "shell", "--command", "zsh"]);
+        let args = args!["--command", "bash"];
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_shell(), args!["nix", "shell", "--command", "bash"]);
     }
     
     #[test]
     fn nix_develop() {
         let args = args![];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_develop(), args!["nix", "develop", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_develop(), args!["nix", "develop", "--command", SHELL]);
     }
     
     #[test]
     fn nix_develop_nixpkg() {
         let args = args!["eza"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_develop(), args!["nix", "develop", "nixpkgs#eza", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_develop(), args!["nix", "develop", "nixpkgs#eza", "--command", SHELL]);
     }
     
     #[test]
     fn nix_develop_with_arg() {
         let args = args!["--help"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_develop(), args!["nix", "develop", "--help", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_develop(), args!["nix", "develop", "--help", "--command", SHELL]);
     }
     
     #[test]
     fn nix_develop_with_arg_nixpkg() {
         let args = args!["eza", "--help"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_develop(), args!["nix", "develop", "nixpkgs#eza", "--help", "--command", "fish"]);
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_develop(), args!["nix", "develop", "nixpkgs#eza", "--help", "--command", SHELL]);
     }
     
     #[test]
     fn nix_develop_with_shell_specified() {
-        let args = args!["--command", "zsh"];
-        let p = Processer::new(args);
-        assert_eq!(p.nix_develop(), args!["nix", "develop", "--command", "zsh"]);
+        let args = args!["--command", "bash"];
+        let p = Processer::new(args, SHELL.to_string());
+        assert_eq!(p.nix_develop(), args!["nix", "develop", "--command", "bash"]);
     }
 }

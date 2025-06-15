@@ -8,6 +8,7 @@ pub struct Processer {
 }
 
 impl Processer {
+    #[inline]
     pub fn new(args: Vec<String>) -> Self {
         Self {
             args
@@ -16,6 +17,7 @@ impl Processer {
 
     /// pkg -> nixpkgs#pkg
     /// Makes sure to avoid treating args as pkgs
+    #[inline]
     fn format_nixpkg(pkg: String) -> String {
         // To avoid nixpkgs#--arguement
         if !pkg.starts_with("-") {
@@ -25,6 +27,7 @@ impl Processer {
         }
     }
 
+    #[inline]
     pub fn nix_run(&self) -> Vec<String> {
         let mut args = self.args.clone();
         let mut out = args![ "nix", "run" ];
@@ -45,6 +48,7 @@ impl Processer {
         out
     }
 
+    #[inline]
     pub fn nix_shell(&self) -> Vec<String> {
         let mut args = self.args.clone();
         let mut out = args![ "nix", "shell" ];
@@ -64,6 +68,7 @@ impl Processer {
         out
     }
 
+    #[inline]
     pub fn nix_develop(&self) -> Vec<String> {
         let mut args = self.args.clone();
         let mut out = args![ "nix", "develop" ];

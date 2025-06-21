@@ -1,52 +1,23 @@
 mod processer;
+mod cli;
+mod mode;
 
-use std::env;
-use std::process::{ exit, Command };
+use clap::Parser;
 
+use cli::Args;
+use mode::Mode;
 use processer::Processer;
 
-const HELP: &str = "Usage: nf <SHELL> <MODE> <cmd>";
-
 fn main() {
-    let mut args = env::args();
-    let _ = args.next(); // skip binary name
-    let shell = args.next().unwrap_or_else(|| quit());
-    let mode = args.next().unwrap_or_else(|| quit());
-    let cmd_args: Vec<String> = args.collect();
+    let args = Args::parse();
 
-    let processer = Processer::new(cmd_args, shell);
-    let cmd = match mode.as_str() {
-        "run" => processer.nix_run(),
-        "shell" => processer.nix_shell(),
-        "develop" => processer.nix_develop(),
-        _ => quit(),
+    if args.debug {
+        println!("{:#?}", args);
+    }
+
+    match args.mode {
+        Mode::Run(run) => run.execute(args.debug),
+        Mode::Shell(shell) => shell.execute(args.debug),
+        Mode::Develop(develop) => develop.execute(args.debug),
     };
-
-    execute_to_stdout(&cmd);
-}
-
-#[inline]
-fn quit() -> ! {
-    println!("{}", HELP);
-    exit(1);
-}
-
-/// Faster but UNIX exclusive
-#[inline]
-#[cfg(unix)]
-fn execute_to_stdout(cmd: &[String]) {
-    use std::os::unix::process::CommandExt;
-    let _ = Command::new(&cmd[0])
-        .args(&cmd[1..])
-        .exec(); // This replaces the current process
-}
-
-#[inline]
-#[cfg(not(unix))]
-fn execute_to_stdout(cmd: &[String]) {
-    use std::process::Stdio;
-    let _ = Command::new(&cmd[0]).args(&cmd[1..])
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .status();
 }

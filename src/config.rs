@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs, io::Result, path::PathBuf};
 
 use clap::{Args, Subcommand};
-use include_dir::{include_dir, Dir};
+use include_dir::{include_dir, Dir, DirEntry, File};
 
 use crate::cli::Actionable;
 use crate::completions::Completions;
@@ -87,6 +87,30 @@ impl Actionable for Remove {
 #[derive(Debug, Args)]
 struct Create;
 
+impl Create {
+    /// Initializes a default config file
+    fn init_file(file: &File<'_>, to: &PathBuf) {
+        let file_name = file.path().file_name().unwrap();
+        let file_path = to.join(file_name);
+
+        fs::write(&file_path, file.contents()).expect("Couldn't create config file!");
+    }
+
+    /// Recursively initializes the default config
+    fn init_recursive(from: &Dir<'_>, to: &PathBuf) {
+        for entry in from.entries() {
+            match entry {
+                DirEntry::Dir(dir) => {
+                    let to = to.join(dir.path());
+                    fs::create_dir(&to).expect("Couldn't create directory!");
+                    Self::init_recursive(dir, &to);
+                },
+                DirEntry::File(file) => Self::init_file(&file, &to),
+            }
+        }
+    }
+}
+
 impl Actionable for Create {
     fn perform(&self, debug: bool) {
         let dest = get_config_dir();
@@ -99,17 +123,7 @@ impl Actionable for Create {
         assert!(!dest.is_dir(), "Configuration directory already exists!");
         fs::create_dir(&dest).expect("Couldn't create empty configuration directory!");
 
-        for d in DEFAULT_CONFIG.dirs() {
-            let dir = dest.join(d.path());
-            fs::create_dir(&dir).expect("Couldn't create directory!");
-
-            for file in d.files() {
-                let file_name = file.path().file_name().expect("Couldn't get file name!");
-                let file_path = dir.join(file_name);
-
-                fs::write(&file_path, file.contents()).expect("Couldn't create config file!");
-            }
-        }
+        Self::init_recursive(&DEFAULT_CONFIG, &dest);
     }
 }
 

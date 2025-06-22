@@ -3,6 +3,7 @@ mod cli;
 mod mode;
 mod init;
 mod config;
+mod completions;
 
 use clap::Parser;
 

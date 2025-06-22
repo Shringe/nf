@@ -4,6 +4,7 @@ use clap::{Args, Subcommand};
 use include_dir::{include_dir, Dir};
 
 use crate::cli::Actionable;
+use crate::completions::Completions;
 
 static DEFAULT_CONFIG: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/src/default_config");
 
@@ -137,6 +138,8 @@ enum Action {
     Create(Create),
     /// Deletes the existing configuration
     Destroy(Destroy),
+    /// Generates shell completions
+    Completions(Completions),
 }
 
 impl Actionable for Action {
@@ -146,6 +149,7 @@ impl Actionable for Action {
             Action::Remove(remove) => remove.perform(debug),
             Action::Create(create) => create.perform(debug),
             Action::Destroy(destroy) => destroy.perform(debug),
+            Action::Completions(completions) => completions.perform(debug),
         };
     }
 }

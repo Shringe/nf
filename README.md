@@ -1,7 +1,7 @@
 ## TODO:
 ### Commands
-- [ ] command: nf config add
-- [ ] command: nf config remove
+- [ ] nf config add
+- [ ] nf config remove
 ### Functionality
 - [ ] implement nf config remove
 ### Other

@@ -9,6 +9,12 @@ pub struct Args {
     #[command(subcommand)]
     pub mode: Mode,
 
+    /// Enables extra debug info and does not actually execute any commands or make changes on
+    /// disk.
     #[arg(long)]
     pub debug: bool,
+
+    /// Generates the default config directory and contents if it doesn't exist.
+    #[arg(long)]
+    pub generate_default_config: bool,
 }

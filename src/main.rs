@@ -1,6 +1,7 @@
 mod processer;
 mod cli;
 mod mode;
+mod init;
 
 use clap::Parser;
 
@@ -19,5 +20,6 @@ fn main() {
         Mode::Run(run) => run.execute(args.debug),
         Mode::Shell(shell) => shell.execute(args.debug),
         Mode::Develop(develop) => develop.execute(args.debug),
+        Mode::Init(init) => init.make(args.debug),
     };
 }

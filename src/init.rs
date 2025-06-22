@@ -18,7 +18,7 @@ impl Init {
         let destination = PathBuf::from("flake.nix");
 
         if debug {
-            println!("{:?} -> {:?}", self.template, destination);
+            println!("{:?} -> {:?}", template, destination);
         }
 
         assert!(template.is_file(), "This template does not exist!");

@@ -2,9 +2,7 @@ use std::{collections::HashMap, fs, io::Result, path::PathBuf};
 
 use clap::Args;
 
-pub fn get_config_dir() -> PathBuf {
-    dirs::config_dir().map(|dir| dir.join("nf")).expect("Couldn't find configuration directory!")
-}
+use crate::config::get_config_dir;
 
 /// Maps the names of available templates to their full paths 
 fn map_templates(dir: PathBuf) -> Result<HashMap<String, PathBuf>> {

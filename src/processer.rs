@@ -76,7 +76,7 @@ pub struct Shell {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     pub args: Vec<String>,
 
-    #[arg(long, short, default_value = "bash")]
+    #[arg(long, default_value = "bash")]
     shell: String,
 }
 
@@ -105,7 +105,7 @@ pub struct Develop {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     pub args: Vec<String>,
 
-    #[arg(long, short, default_value = "bash")]
+    #[arg(long, default_value = "bash")]
     shell: String,
 }
 

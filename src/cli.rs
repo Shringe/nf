@@ -13,8 +13,4 @@ pub struct Args {
     /// disk.
     #[arg(long)]
     pub debug: bool,
-
-    /// Generates the default config directory and contents if it doesn't exist.
-    #[arg(long)]
-    pub generate_default_config: bool,
 }

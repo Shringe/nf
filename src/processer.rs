@@ -1,6 +1,8 @@
 use clap::Args;
 use std::{os::unix::process::CommandExt, process::Command};
 
+use crate::cli::Actionable;
+
 /// Replaces the current process with a new one.
 /// Primarily used for executing shell expansions.
 fn execute_to_stdout(cmd: &[String]) {
@@ -44,7 +46,7 @@ pub trait Processer {
 #[derive(Debug, Args)]
 pub struct Run {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-    pub args: Vec<String>,
+    args: Vec<String>,
 }
 
 impl Processer for Run {
@@ -71,10 +73,16 @@ impl Processer for Run {
     }
 }
 
+impl Actionable for Run {
+    fn perform(&self, debug: bool) {
+        self.execute(debug);
+    }
+}
+
 #[derive(Debug, Args)]
 pub struct Shell {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-    pub args: Vec<String>,
+    args: Vec<String>,
 
     #[arg(long, default_value = "bash")]
     shell: String,
@@ -100,10 +108,16 @@ impl Processer for Shell {
     }
 }
 
+impl Actionable for Shell {
+    fn perform(&self, debug: bool) {
+        self.execute(debug);
+    }
+}
+
 #[derive(Debug, Args)]
 pub struct Develop {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
-    pub args: Vec<String>,
+    args: Vec<String>,
 
     #[arg(long, default_value = "bash")]
     shell: String,
@@ -129,6 +143,11 @@ impl Processer for Develop {
     }
 }
 
+impl Actionable for Develop {
+    fn perform(&self, debug: bool) {
+        self.execute(debug);
+    }
+}
 
 #[cfg(test)]
 mod tests {

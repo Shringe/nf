@@ -2,9 +2,10 @@ use std::{fs, path::PathBuf};
 
 use clap::{Args, Subcommand};
 
-use crate::cli::{Actionable, ActionableConfig};
+use crate::cli::Actionable;
 use crate::completions::Completions;
 
+use super::initialize;
 use super::manager::ConfigManager;
 
 #[derive(Debug, Args)]
@@ -16,8 +17,9 @@ struct Add {
     name: String,
 }
 
-impl ActionableConfig for Add {
-    fn perform(&self, config: ConfigManager) {
+impl Actionable for Add {
+    fn perform(&self, debug: bool) {
+        let config = ConfigManager::new(debug);
         let dest = config.template_dir.join(&self.name);
         assert!(!dest.is_file(), "That template already exists!");
 
@@ -35,8 +37,9 @@ struct Remove {
     template: String,
 }
 
-impl ActionableConfig for Remove {
-    fn perform(&self, config: ConfigManager) {
+impl Actionable for Remove {
+    fn perform(&self, debug: bool) {
+        let config = ConfigManager::new(debug);
         let target = config.get_template(&self.template);
 
         if config.debug {
@@ -50,18 +53,18 @@ impl ActionableConfig for Remove {
 #[derive(Debug, Args)]
 struct Create;
 
-impl ActionableConfig for Create {
-    fn perform(&self, config: ConfigManager) {
-        config.initialize_defaults();
+impl Actionable for Create {
+    fn perform(&self, debug: bool) {
+        initialize::initialize_defaults(debug);
     }
 }
 
 #[derive(Debug, Args)]
 struct Destroy;
 
-impl ActionableConfig for Destroy {
-    fn perform(&self, config: ConfigManager) {
-        config.destroy_configuration().expect("Failed to destroy configuration.");
+impl Actionable for Destroy {
+    fn perform(&self, debug: bool) {
+        initialize::destroy_configuration(debug).expect("Failed to destroy configuration.");
     }
 }
 
@@ -79,14 +82,14 @@ enum Action {
     Completions(Completions),
 }
 
-impl ActionableConfig for Action {
-    fn perform(&self, config: ConfigManager) {
+impl Actionable for Action {
+    fn perform(&self, debug: bool) {
         match self {
-            Action::Add(add) => add.perform(config),
-            Action::Remove(remove) => remove.perform(config),
-            Action::Create(create) => create.perform(config),
-            Action::Destroy(destroy) => destroy.perform(config),
-            Action::Completions(completions) => completions.perform(config),
+            Action::Add(add) => add.perform(debug),
+            Action::Remove(remove) => remove.perform(debug),
+            Action::Create(create) => create.perform(debug),
+            Action::Destroy(destroy) => destroy.perform(debug),
+            Action::Completions(completions) => completions.perform(debug),
         };
     }
 }
@@ -100,7 +103,6 @@ pub struct Config {
 
 impl Actionable for Config {
     fn perform(&self, debug: bool) {
-        let config = ConfigManager::new(debug);
-        self.action.perform(config);
+        self.action.perform(debug);
     }
 }

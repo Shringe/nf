@@ -12,7 +12,7 @@ pub enum Mode {
     /// Copies flake templates from ~/.config/nf/templates/<name> to ./flake.nix
     Init(init::Init),
     /// Manages the config, usually found in ~/.config/nf
-    Config(config::Config),
+    Config(config::command::Config),
 }
 
 impl Actionable for Mode {

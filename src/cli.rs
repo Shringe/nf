@@ -1,11 +1,17 @@
 use clap::Parser;
 
-use crate::mode::Mode;
+use crate::{config::manager::ConfigManager, mode::Mode};
 
 /// This is used recursively to process the argument tree
 pub trait Actionable {
     /// Performs the action
     fn perform(&self, debug: bool);
+}
+
+/// This is used recursively to process the argument tree
+pub trait ActionableConfig {
+    /// Performs the action
+    fn perform(&self, config: ConfigManager);
 }
 
 /// Simple program inspired by nix-helper that allows for fancy nix command expansions.

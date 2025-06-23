@@ -4,9 +4,9 @@ use clap::{Args, Subcommand};
 
 use crate::cli::Actionable;
 use crate::completions::Completions;
+use crate::config::manager::get_config_dir;
 
 use super::initialize;
-use super::manager::ConfigManager;
 
 #[derive(Debug, Args)]
 struct Add {
@@ -19,11 +19,10 @@ struct Add {
 
 impl Actionable for Add {
     fn perform(&self, debug: bool) {
-        let config = ConfigManager::new(debug);
-        let dest = config.template_dir.join(&self.name);
+        let dest = get_config_dir().join(&self.name);
         assert!(!dest.is_file(), "That template already exists!");
 
-        if config.debug {
+        if debug {
             println!("{:?} -> {:?}", self.template, dest);
         } else {
             fs::copy(&self.template, dest).expect("Couldn't copy template file!");
@@ -39,10 +38,9 @@ struct Remove {
 
 impl Actionable for Remove {
     fn perform(&self, debug: bool) {
-        let config = ConfigManager::new(debug);
-        let target = config.get_template(&self.template);
+        let target = get_config_dir().join(&self.template);
 
-        if config.debug {
+        if debug {
             println!("Deleting template {} at {:?}", self.template, target);
         } else {
             fs::remove_file(&target).expect("Failed to delete template!");

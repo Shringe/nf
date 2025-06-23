@@ -1,7 +1,7 @@
 use clap::Args;
 use std::{os::unix::process::CommandExt, process::Command};
 
-use crate::{cli::Actionable, config::manager::ConfigManager};
+use crate::{cli::Actionable, config::manager::ConfigFile};
 
 /// Replaces the current process with a new one.
 /// Primarily used for executing shell expansions.
@@ -104,8 +104,7 @@ impl Processer for Shell {
             out.push("--command".to_string());
 
             let shell = if self.shell == "config" {
-                let config = ConfigManager::new(false);
-                config.config_file.shell
+                ConfigFile::default().shell
             } else {
                 self.shell.clone()
             };
@@ -148,8 +147,7 @@ impl Processer for Develop {
             out.push("--command".to_string());
 
             let shell = if self.shell == "config" {
-                let config = ConfigManager::new(false);
-                config.config_file.shell
+                ConfigFile::default().shell
             } else {
                 self.shell.clone()
             };

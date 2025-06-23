@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Args;
 
-use crate::{cli::Actionable, config::manager::ConfigManager};
+use crate::{cli::Actionable, config::manager::{map_templates}};
 
 #[derive(Debug, Args)]
 pub struct Init {
@@ -12,8 +12,8 @@ pub struct Init {
 
 impl Actionable for Init {
     fn perform(&self, debug: bool) {
-        let config = ConfigManager::new(debug);
-        let template = config.get_template(&self.template);
+        let templates = map_templates().expect("Couldn't map templates!");
+        let template = templates.get(&self.template).expect("Template not found!");
         let destination = PathBuf::from("flake.nix");
         assert!(!destination.is_file(), "flake.nix already exists!");
 

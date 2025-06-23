@@ -72,7 +72,7 @@ impl ConfigManager {
         assert!(!dest.is_dir(), "Configuration directory already exists!");
         fs::create_dir(&dest).expect("Couldn't create empty configuration directory!");
 
-        initialize::init_recursive(&DEFAULT_CONFIG, &dest);
+        initialize::init_recursive(&DEFAULT_CONFIG, &dest).expect("Failed to initialize default configuration!");
     }
 
     /// Destroys any existing configuration

@@ -101,7 +101,7 @@ impl Create {
         for entry in from.entries() {
             match entry {
                 DirEntry::Dir(dir) => {
-                    let to = to.join(dir.path());
+                    let to = to.join(dir.path().file_name().expect("Couldn't get directory name!"));
                     fs::create_dir(&to).expect("Couldn't create directory!");
                     Self::init_recursive(dir, &to);
                 },

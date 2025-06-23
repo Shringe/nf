@@ -1,8 +1,10 @@
 use std::{collections::HashMap, fs, path::PathBuf};
-use std::io::Result;
+use std::io;
+
+use serde::Deserialize;
 
 /// Maps the names of available templates to their full paths 
-fn map_templates(dir: &PathBuf) -> Result<HashMap<String, PathBuf>> {
+fn map_templates(dir: &PathBuf) -> io::Result<HashMap<String, PathBuf>> {
     assert!(dir.is_dir(), "Couldn't find templates directory to map!");
 
     let mut templates = HashMap::new();
@@ -25,12 +27,26 @@ pub fn get_config_dir() -> PathBuf {
     dirs::config_dir().expect("Couldn't get configuration directory!").join("nf")
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ConfigFile {
+    pub shell: String,
+}
+
+impl ConfigFile {
+    pub fn new(file: &PathBuf) -> Self  {
+        assert!(file.is_file(), "This is not a file!");
+        let contents = fs::read_to_string(file).expect("Couldn't read config.toml!");
+        let config = toml::from_str(&contents).expect("Couldn't parse config.toml!");
+        config
+    }
+}
+
 #[derive(Debug)]
 pub struct ConfigManager {
-    // pub config_dir: PathBuf,
     pub template_dir: PathBuf,
     templates: HashMap<String, PathBuf>,
     pub debug: bool,
+    pub config_file: ConfigFile,
 }
 
 impl ConfigManager {
@@ -38,12 +54,13 @@ impl ConfigManager {
         let config_dir = get_config_dir();
         let template_dir = config_dir.join("templates");
         let templates = map_templates(&template_dir).expect("Couldn't map templates!");
+        let config_file = ConfigFile::new(&config_dir.join("config.toml"));
 
         let config = Self {
-            // config_dir,
             template_dir,
             templates,
             debug,
+            config_file,
         };
 
         if debug {
@@ -57,4 +74,6 @@ impl ConfigManager {
     pub fn get_template(&self, name: &String) -> &PathBuf {
         self.templates.get(name).expect("Couldn't find template!")
     }
+
+    // fn read_config(&self) -> 
 }

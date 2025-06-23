@@ -1,7 +1,7 @@
 use clap::Args;
 use std::{os::unix::process::CommandExt, process::Command};
 
-use crate::cli::Actionable;
+use crate::{cli::Actionable, config::manager::ConfigManager};
 
 /// Replaces the current process with a new one.
 /// Primarily used for executing shell expansions.
@@ -84,7 +84,8 @@ pub struct Shell {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
 
-    #[arg(long, default_value = "bash")]
+    /// If this is set to config, it will pull from the config file
+    #[arg(long, default_value = "config")]
     shell: String,
 }
 
@@ -101,7 +102,15 @@ impl Processer for Shell {
         
         if !contains_flag(&self.args, "--command") {
             out.push("--command".to_string());
-            out.push(self.shell.clone());
+
+            let shell = if self.shell == "config" {
+                let config = ConfigManager::new(false);
+                config.config_file.shell
+            } else {
+                self.shell.clone()
+            };
+
+            out.push(shell);
         }
         
         out
@@ -119,7 +128,8 @@ pub struct Develop {
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
 
-    #[arg(long, default_value = "bash")]
+    /// If this is set to config, it will pull from the config file
+    #[arg(long, default_value = "config")]
     shell: String,
 }
 
@@ -136,7 +146,15 @@ impl Processer for Develop {
         
         if !contains_flag(&self.args, "--command") {
             out.push("--command".to_string());
-            out.push(self.shell.clone());
+
+            let shell = if self.shell == "config" {
+                let config = ConfigManager::new(false);
+                config.config_file.shell
+            } else {
+                self.shell.clone()
+            };
+
+            out.push(shell);
         }
         
         out

@@ -151,141 +151,79 @@ impl Actionable for Develop {
 
 #[cfg(test)]
 mod tests {
-    use crate::expansions::cmd::{self, validate_processer_test};
+    use std::collections::HashMap;
+
+    use crate::{expansions::cmd::{self, validate_processer_test}, mode::Mode};
 
     use super::{Develop, Processer, Run, Shell};
 
     const SHELL: &str = "zsh";
 
-    fn test_run(input: Vec<String>, expected: Vec<String>) {
-        let p = Run { args: input.clone() };
-        let out = p.process();
-        validate_processer_test(&input, &expected, &out);
+    fn test_processer<P: Processer>(input: Vec<String>, expected: Vec<String>, p: P) {
+        validate_processer_test(&input, &expected, &p.process());
     }
 
-    fn test_shell(input: Vec<String>, expected: Vec<String>) {
-        let p = Shell { args: input.clone(), shell: SHELL.to_string() };
-        let out = p.process();
-        validate_processer_test(&input, &expected, &out);
+    fn test_processer_any(input: Vec<String>, expected: Vec<String>, mode: &Mode) {
+        match mode {
+            Mode::Run(_) => {
+                let p = Run { args: input.clone() };
+                test_processer(input, expected, p);
+            },
+            Mode::Shell(_) => {
+                let p = Shell { args: input.clone(), shell: SHELL.to_string() };
+                test_processer(input, expected, p);
+            },
+            Mode::Develop(_) => {
+                let p = Develop { args: input.clone(), shell: SHELL.to_string() };
+                test_processer(input, expected, p);
+            },
+            _ => panic!("Wrong mode!"),
+        };
     }
 
-    fn test_develop(input: Vec<String>, expected: Vec<String>) {
-        let p = Develop { args: input.clone(), shell: SHELL.to_string() };
-        let out = p.process();
-        validate_processer_test(&input, &expected, &out);
+    fn test_processer_map(map: HashMap<&str, &str>, mode: Mode) {
+        for (k, v) in map {
+            test_processer_any(cmd::from_string(k), cmd::from_string(v), &mode);
+        }
     }
     
     #[test]
     fn nix_run() {
-        let input    = cmd::from_string("");
-        let expected = cmd::from_string("nix run");
-        test_run(input, expected);
-    }
-    
-    #[test]
-    fn nix_run_nixpkg() {
-        let input    = cmd::from_string("eza");
-        let expected = cmd::from_string("nix run nixpkgs#eza");
-        test_run(input, expected);
-    }
-    
-    #[test]
-    fn nix_run_with_arg_nixpkg() {
-        let input    = cmd::from_string("eza to_nix_run --");
-        let expected = cmd::from_string("nix run nixpkgs#eza to_nix_run --");
-        test_run(input, expected);
-    }
-    
-    #[test]
-    fn nix_run_nixpkg_with_arg() {
-        let input    = cmd::from_string("eza to_command");
-        let expected = cmd::from_string("nix run nixpkgs#eza -- to_command");
-        test_run(input, expected);
-    }
-    
-    #[test]
-    fn nix_run_nixpkg_with_arg_redundant() {
-        let input    = cmd::from_string("eza -- to_command");
-        let expected = cmd::from_string("nix run nixpkgs#eza -- to_command");
-        test_run(input, expected);
-    }
-    
-    #[test]
-    fn nix_run_with_arg_nixpkg_with_arg() {
-        let input    = cmd::from_string("eza to_nix_run -- to_command");
-        // TODO, this is in the wrong order. It probably should be this:
-        // let expected = cmd::from_string("nix run to_nix_run nixpkgs#eza -- to_command");
-        let expected = cmd::from_string("nix run nixpkgs#eza to_nix_run -- to_command");
-        test_run(input, expected);
+        let map = HashMap::from([
+            ("", "nix run"),
+            ("eza", "nix run nixpkgs#eza"),
+            ("eza to_nix --", "nix run nixpkgs#eza to_nix --"),
+            ("eza to_program", "nix run nixpkgs#eza -- to_program"),
+            ("eza -- to_program", "nix run nixpkgs#eza -- to_program"),
+            ("eza to_nix -- to_program", "nix run nixpkgs#eza to_nix -- to_program")
+        ]);
+
+        test_processer_map(map, Mode::Run(Run { args: Vec::new() }));
     }
     
     #[test]
     fn nix_shell() {
-        let input    = cmd::from_string("");
-        let expected = cmd::from_string("nix shell --command zsh");
-        test_shell(input, expected);
+        let map = HashMap::from([
+            ("", "nix shell --command zsh"),
+            ("eza", "nix shell nixpkgs#eza --command zsh"),
+            ("--help", "nix shell --help --command zsh"),
+            ("eza --help", "nix shell nixpkgs#eza --help --command zsh"),
+            ("--command bash", "nix shell --command bash"),
+        ]);
+
+        test_processer_map(map, Mode::Shell(Shell { args: Vec::new(), shell: SHELL.to_string() }));
     }
-    
-    #[test]
-    fn nix_shell_nixpkg() {
-        let input    = cmd::from_string("eza");
-        let expected = cmd::from_string("nix shell nixpkgs#eza --command zsh");
-        test_shell(input, expected);
-    }
-    
-    #[test]
-    fn nix_shell_with_arg() {
-        let input    = cmd::from_string("--help");
-        let expected = cmd::from_string("nix shell --help --command zsh");
-        test_shell(input, expected);
-    }
-    
-    #[test]
-    fn nix_shell_with_arg_nixpkg() {
-        let input    = cmd::from_string("eza --help");
-        let expected = cmd::from_string("nix shell nixpkgs#eza --help --command zsh");
-        test_shell(input, expected);
-    }
-    
-    #[test]
-    fn nix_shell_with_shell_specified() {
-        let input    = cmd::from_string("--command bash");
-        let expected = cmd::from_string("nix shell --command bash");
-        test_shell(input, expected);
-    }
-    
+
     #[test]
     fn nix_develop() {
-        let input    = cmd::from_string("");
-        let expected = cmd::from_string("nix develop --command zsh");
-        test_develop(input, expected);
-    }
-    
-    #[test]
-    fn nix_develop_nixpkg() {
-        let input    = cmd::from_string("eza");
-        let expected = cmd::from_string("nix develop nixpkgs#eza --command zsh");
-        test_develop(input, expected);
-    }
-    
-    #[test]
-    fn nix_develop_with_arg() {
-        let input    = cmd::from_string("--help");
-        let expected = cmd::from_string("nix develop --help --command zsh");
-        test_develop(input, expected);
-    }
-    
-    #[test]
-    fn nix_develop_with_arg_nixpkg() {
-        let input    = cmd::from_string("eza --help");
-        let expected = cmd::from_string("nix develop nixpkgs#eza --help --command zsh");
-        test_develop(input, expected);
-    }
-    
-    #[test]
-    fn nix_develop_with_shell_specified() {
-        let input    = cmd::from_string("--command bash");
-        let expected = cmd::from_string("nix develop --command bash");
-        test_develop(input, expected);
+        let map = HashMap::from([
+            ("", "nix develop --command zsh"),
+            ("eza", "nix develop nixpkgs#eza --command zsh"),
+            ("--help", "nix develop --help --command zsh"),
+            ("eza --help", "nix develop nixpkgs#eza --help --command zsh"),
+            ("--command bash", "nix develop --command bash"),
+        ]);
+
+        test_processer_map(map, Mode::Develop(Develop { args: Vec::new(), shell: SHELL.to_string() }));
     }
 }

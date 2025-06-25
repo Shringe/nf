@@ -108,6 +108,12 @@ mod tests {
         validate_processer_test(&input, &expected, &out);
     }
 
+    fn test_unprocesser_map(map: HashMap<&str, &str>) {
+        for (k, v) in map {
+            test_unprocesser(cmd::from_string(k), cmd::from_string(v));
+        }
+    }
+
     #[test]
     fn get_args() {
         let map = HashMap::from([
@@ -129,36 +135,14 @@ mod tests {
 
     #[test]
     fn nix_run() {
-        let input    = cmd::from_string("nix run");
-        let expected = cmd::from_string("nf run");
-        test_unprocesser(input, expected);
-    }
+        let map = HashMap::from([
+            ("nix run", "nf run"),
+            ("nix run nixpkgs#eza", "nf run eza"),
+            ("nix run to_nix nixpkgs#eza", "nf run eza to_nix --"),
+            ("nix run nixpkgs#eza -- to_program", "nf run eza to_program"),
+            ("nix run to_nix nixpkgs#eza -- to_program", "nf run eza to_nix -- to_program"),
+        ]);
 
-    #[test]
-    fn nix_run_nixpkg() {
-        let input    = cmd::from_string("nix run nixpkgs#eza");
-        let expected = cmd::from_string("nf run eza");
-        test_unprocesser(input, expected);
-    }
-
-    #[test]
-    fn nix_run_with_arg_nixpkg() {
-        let input    = cmd::from_string("nix run to_nix_run nixpkgs#eza");
-        let expected = cmd::from_string("nf run eza to_nix_run --");
-        test_unprocesser(input, expected);
-    }
-
-    #[test]
-    fn nix_run_nixpkg_with_arg() {
-        let input    = cmd::from_string("nix run nixpkgs#eza -- to_command");
-        let expected = cmd::from_string("nf run eza to_command");
-        test_unprocesser(input, expected);
-    }
-
-    #[test]
-    fn nix_run_with_arg_nixpkg_with_arg() {
-        let input    = cmd::from_string("nix run to_nix_run nixpkgs#eza -- to_command");
-        let expected = cmd::from_string("nf run eza to_nix_run -- to_command");
-        test_unprocesser(input, expected);
+        test_unprocesser_map(map);
     }
 }

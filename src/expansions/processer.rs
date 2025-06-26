@@ -24,7 +24,7 @@ pub trait Processer {
         let cmd = self.process();
 
         if debug {
-            println!("> {}", cmd.join(" "));
+            println!("> {}", cmd::to_string(&cmd));
         } else {
             cmd::execute_to_stdout(&cmd);
         }
@@ -33,6 +33,8 @@ pub trait Processer {
 
 #[derive(Debug, Args)]
 pub struct Run {
+    /// Arguements for the program. If you have arguements for the nix_cli, then place them before
+    /// a delimiter.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
 }
@@ -69,10 +71,12 @@ impl Actionable for Run {
 
 #[derive(Debug, Args)]
 pub struct Shell {
+    /// Arguements for the program. If you have arguements for the nix_cli, then place them before
+    /// a delimiter.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
 
-    /// If this is set to config, it will pull from the config file
+    /// If this is set to config, it will pull from the config file instead
     #[arg(long, default_value = "config")]
     shell: String,
 }
@@ -110,10 +114,12 @@ impl Actionable for Shell {
 
 #[derive(Debug, Args)]
 pub struct Develop {
+    /// Arguements for the program. If you have arguements for the nix_cli, then place them before
+    /// a delimiter.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
 
-    /// If this is set to config, it will pull from the config file
+    /// If this is set to config, it will pull from the config file instead
     #[arg(long, default_value = "config")]
     shell: String,
 }

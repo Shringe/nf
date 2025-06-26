@@ -35,17 +35,26 @@ impl UnProcesser {
 
     /// Unprocesses and returns everything after the first two arguements
     fn get_args(&self) -> Vec<String> {
-        let mut pkg = None;
-        let mut shell_args = Vec::new();
         let mut nix_args = Vec::new();
         let mut program_args = Vec::new();
 
-        let mut to_program = false;
+        let mut pkg = None;
+        let mut looking_for_pkg = true;
+
+        let mut shell = None;
+        let mut looking_for_shell = true;
         let mut is_shell = false;
+
+        let mut to_program = false;
         for a in self.args[2..].iter() {
-            if is_shell {
-                shell_args.push("--shell".to_string());
-                shell_args.push(a.to_string());
+            if looking_for_shell {
+                if a == "--command" {
+                    is_shell = true;
+                    looking_for_shell = false;
+                    continue;
+                }
+            } else if is_shell {
+                shell = Some(a.to_string());
                 is_shell = false;
                 continue;
             }
@@ -53,14 +62,14 @@ impl UnProcesser {
             if a == "--" {
                 to_program = true;
                 continue;
-            } else if a == "--command" {
-                is_shell = true;
-                continue;
-            } else if let Some(p) = a.strip_prefix("nixpkgs#") {
-                pkg = Some(p.to_string());
-                continue;
-            }
-            
+            } if looking_for_pkg {
+                if let Some(p) = a.strip_prefix("nixpkgs#") {
+                    pkg = Some(p.to_string());
+                    looking_for_pkg = false;
+                    continue;
+                }
+            }            
+
             if to_program {
                 program_args.push(a.to_string());
             } else {
@@ -73,9 +82,13 @@ impl UnProcesser {
             nix_args.push("--".to_string());
         }
 
-        // Plus one for the potential package
-        let mut out = Vec::with_capacity(shell_args.len() + nix_args.len() + program_args.len() + 1);
-        out.extend(shell_args);
+        // Plus three for the potential package or shell args
+        let mut out = Vec::with_capacity(nix_args.len() + program_args.len() + 3);
+
+        if let Some(s) = shell {
+            out.push("--shell".to_string());
+            out.push(s);
+        }
 
         if let Some(p) = pkg {
             out.push(p);

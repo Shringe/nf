@@ -26,7 +26,7 @@ impl Actionable for UnProcesser {
 impl UnProcesser {
     /// Reverses a shell expansion. For example: nix run nixpkgs#hello -> nf run hello
     fn unprocess(&self) -> (Vec<String>, Option<String>) {
-        assert!(self.args.len() > 1, "There must be more than 2 arguements!");
+        assert!(self.args.len() > 1, "There must be more than 2 arguments!");
 
         let (args, shell) = self.get_args();
         let mut out = Vec::with_capacity(args.len() + 2);
@@ -38,7 +38,7 @@ impl UnProcesser {
         (out, shell)
     }
 
-    /// Unprocesses and returns everything after the first two arguements
+    /// Unprocesses and returns everything after the first two arguments
     fn get_args(&self) -> (Vec<String>, Option<String>) {
         let mut nix_args = Vec::new();
         let mut program_args = Vec::new();

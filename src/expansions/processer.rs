@@ -33,7 +33,7 @@ pub trait Processer {
 
 #[derive(Debug, Args)]
 pub struct Run {
-    /// Arguements for the program. If you have arguements for the nix_cli, then place them before
+    /// Arguments for the program. If you have arguments for the nix_cli, then place them before
     /// a delimiter.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
@@ -71,7 +71,7 @@ impl Actionable for Run {
 
 #[derive(Debug, Args)]
 pub struct Shell {
-    /// Arguements for the program. If you have arguements for the nix_cli, then place them before
+    /// Arguments for the program. If you have arguments for the nix_cli, then place them before
     /// a delimiter.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
@@ -114,7 +114,7 @@ impl Actionable for Shell {
 
 #[derive(Debug, Args)]
 pub struct Develop {
-    /// Arguements for the program. If you have arguements for the nix_cli, then place them before
+    /// Arguments for the program. If you have arguments for the nix_cli, then place them before
     /// a delimiter.
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,

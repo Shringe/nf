@@ -33,16 +33,31 @@ impl UnProcesser {
         out
     }
 
+    /// Unprocesses and returns everything after the first two arguements
     fn get_args(&self) -> Vec<String> {
+        let mut pkg = None;
+        let mut shell_args = Vec::new();
         let mut nix_args = Vec::new();
         let mut program_args = Vec::new();
 
         let mut to_program = false;
+        let mut is_shell = false;
         for a in self.args[2..].iter() {
+            if is_shell {
+                shell_args.push("--shell".to_string());
+                shell_args.push(a.to_string());
+                is_shell = false;
+                continue;
+            }
+
             if a == "--" {
                 to_program = true;
                 continue;
-            } else if a.starts_with("nixpkgs#"){
+            } else if a == "--command" {
+                is_shell = true;
+                continue;
+            } else if let Some(p) = a.strip_prefix("nixpkgs#") {
+                pkg = Some(p.to_string());
                 continue;
             }
             
@@ -58,39 +73,35 @@ impl UnProcesser {
             nix_args.push("--".to_string());
         }
 
-        let mut out = Vec::with_capacity(nix_args.len() + program_args.len());
+        // Plus one for the potential package
+        let mut out = Vec::with_capacity(shell_args.len() + nix_args.len() + program_args.len() + 1);
+        out.extend(shell_args);
+
+        if let Some(p) = pkg {
+            out.push(p);
+        }
+
         out.extend(nix_args);
         out.extend(program_args);
         out
     }
 
-    fn get_pkg(&self) -> Option<String> {
-        for a in self.args.iter() {
-            if let Some(stripped) = a.strip_prefix("nixpkgs#") {
-                return Some(stripped.to_string());
-            }
-        }
-
-        None
-    }
-
     fn run(&self) -> Vec<String> {
         let mut out = cmd::from_string("nf run");
-
-        if let Some(pkg) = self.get_pkg() {
-            out.push(pkg);
-        }
-
         out.extend(self.get_args());
         out
     }
 
     fn shell(&self) -> Vec<String> {
-        todo!();
+        let mut out = cmd::from_string("nf shell");
+        out.extend(self.get_args());
+        out
     }
 
     fn develop(&self) -> Vec<String> {
-        todo!();
+        let mut out = cmd::from_string("nf develop");
+        out.extend(self.get_args());
+        out
     }
 }
 
@@ -117,11 +128,11 @@ mod tests {
     #[test]
     fn get_args() {
         let map = HashMap::from([
-            ("nix run nixpkgs#eza", ""),
-            ("nix run nixpkgs#eza to_nix_after", "to_nix_after --"),
-            ("nix run to_nix_before nixpkgs#eza to_nix_after", "to_nix_before to_nix_after --"),
-            ("nix run to_nix_before nixpkgs#eza to_nix_after -- to_program", "to_nix_before to_nix_after -- to_program"),
-            ("nix run nixpkgs#eza -- to_program_one to_program_two", "to_program_one to_program_two"),
+            ("nix run nixpkgs#eza", "eza"),
+            ("nix run nixpkgs#eza to_nix_after", "eza to_nix_after --"),
+            ("nix run to_nix_before nixpkgs#eza to_nix_after", "eza to_nix_before to_nix_after --"),
+            ("nix run to_nix_before nixpkgs#eza to_nix_after -- to_program", "eza to_nix_before to_nix_after -- to_program"),
+            ("nix run nixpkgs#eza -- to_program_one to_program_two", "eza to_program_one to_program_two"),
         ]);
 
         for (k, v) in map {
@@ -141,6 +152,40 @@ mod tests {
             ("nix run to_nix nixpkgs#eza", "nf run eza to_nix --"),
             ("nix run nixpkgs#eza -- to_program", "nf run eza to_program"),
             ("nix run to_nix nixpkgs#eza -- to_program", "nf run eza to_nix -- to_program"),
+        ]);
+
+        test_unprocesser_map(map);
+    }
+
+    #[test]
+    fn nix_shell() {
+        let map = HashMap::from([
+            ("nix shell", "nf shell"),
+            ("nix shell nixpkgs#hello", "nf shell hello"),
+            ("nix shell to_nix nixpkgs#eza", "nf shell eza to_nix --"),
+            ("nix shell nixpkgs#eza to_nix", "nf shell eza to_nix --"),
+            ("nix shell nixpkgs#eza -- to_program", "nf shell eza to_program"),
+            ("nix shell to_nix_one nixpkgs#eza to_nix_two", "nf shell eza to_nix_one to_nix_two --"),
+            ("nix shell to_nix_one nixpkgs#eza to_nix_two -- to_program", "nf shell eza to_nix_one to_nix_two -- to_program"),
+            ("nix shell nixpkgs#eza --command fish -- to_program", "nf shell --shell fish eza to_program"),
+            ("nix shell --command fish nixpkgs#eza", "nf shell --shell fish eza"),
+        ]);
+
+        test_unprocesser_map(map);
+    }
+
+    #[test]
+    fn nix_develop() {
+        let map = HashMap::from([
+            ("nix develop", "nf develop"),
+            ("nix develop nixpkgs#hello", "nf develop hello"),
+            ("nix develop to_nix nixpkgs#eza", "nf develop eza to_nix --"),
+            ("nix develop nixpkgs#eza to_nix", "nf develop eza to_nix --"),
+            ("nix develop nixpkgs#eza -- to_program", "nf develop eza to_program"),
+            ("nix develop to_nix_one nixpkgs#eza to_nix_two", "nf develop eza to_nix_one to_nix_two --"),
+            ("nix develop to_nix_one nixpkgs#eza to_nix_two -- to_program", "nf develop eza to_nix_one to_nix_two -- to_program"),
+            ("nix develop nixpkgs#eza --command fish -- to_program", "nf develop --shell fish eza to_program"),
+            ("nix develop --command fish nixpkgs#eza", "nf develop --shell fish eza"),
         ]);
 
         test_unprocesser_map(map);

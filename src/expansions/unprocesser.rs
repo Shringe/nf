@@ -6,6 +6,7 @@ use super::cmd;
 
 #[derive(Debug, Args)]
 pub struct UnProcesser {
+    /// Pass a traditional nix command here, such as: nf reverse -- nix shell nixpkgs#fastfetch --command zsh
     #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
     args: Vec<String>,
 }

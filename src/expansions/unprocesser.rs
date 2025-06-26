@@ -23,13 +23,12 @@ impl UnProcesser {
     pub fn unprocess(&self) -> Vec<String> {
         assert!(self.args.len() > 1, "There must be more than 2 arguements!");
 
-        let out = match self.args[1].as_str() {
-            "run" => self.run(),
-            "shell" => self.shell(),
-            "develop" => self.develop(),
-            _ => panic!("Can't determine command!"),
-        };
+        let mode = self.args[1].to_owned();
+        let mut out = Vec::with_capacity(2);
+        out.push("nf".to_string());
+        out.push(mode);
 
+        out.extend(self.get_args());
         out
     }
 
@@ -96,24 +95,6 @@ impl UnProcesser {
 
         out.extend(nix_args);
         out.extend(program_args);
-        out
-    }
-
-    fn run(&self) -> Vec<String> {
-        let mut out = cmd::from_string("nf run");
-        out.extend(self.get_args());
-        out
-    }
-
-    fn shell(&self) -> Vec<String> {
-        let mut out = cmd::from_string("nf shell");
-        out.extend(self.get_args());
-        out
-    }
-
-    fn develop(&self) -> Vec<String> {
-        let mut out = cmd::from_string("nf develop");
-        out.extend(self.get_args());
         out
     }
 }

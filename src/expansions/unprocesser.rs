@@ -13,27 +13,32 @@ pub struct UnProcesser {
 impl Actionable for UnProcesser {
     fn perform(&self, debug: bool) {
         if debug {} // Gets rid of the warning since debug is not used here
-        let expanded = self.unprocess();
+        let (expanded, shell) = self.unprocess();
+
+        if let Some(s) = shell {
+            println!("You can avoid passing --shell {} by setting shell = \"{}\" in ~/.config/nf/config.toml", s, s);
+        }
         println!("> {}", cmd::to_string(&expanded));
     }
 }
 
 impl UnProcesser {
     /// Reverses a shell expansion. For example: nix run nixpkgs#hello -> nf run hello
-    pub fn unprocess(&self) -> Vec<String> {
+    fn unprocess(&self) -> (Vec<String>, Option<String>) {
         assert!(self.args.len() > 1, "There must be more than 2 arguements!");
 
-        let mode = self.args[1].to_owned();
-        let mut out = Vec::with_capacity(2);
-        out.push("nf".to_string());
-        out.push(mode);
+        let (args, shell) = self.get_args();
+        let mut out = Vec::with_capacity(args.len() + 2);
 
-        out.extend(self.get_args());
-        out
+        out.push("nf".to_string());
+        out.push(self.args[1].to_owned());
+        out.extend(args);
+        
+        (out, shell)
     }
 
     /// Unprocesses and returns everything after the first two arguements
-    fn get_args(&self) -> Vec<String> {
+    fn get_args(&self) -> (Vec<String>, Option<String>) {
         let mut nix_args = Vec::new();
         let mut program_args = Vec::new();
 
@@ -84,7 +89,7 @@ impl UnProcesser {
         // Plus three for the potential package or shell args
         let mut out = Vec::with_capacity(nix_args.len() + program_args.len() + 3);
 
-        if let Some(s) = shell {
+        if let Some(s) = shell.clone() {
             out.push("--shell".to_string());
             out.push(s);
         }
@@ -95,7 +100,7 @@ impl UnProcesser {
 
         out.extend(nix_args);
         out.extend(program_args);
-        out
+        (out, shell)
     }
 }
 
@@ -109,7 +114,7 @@ mod tests {
 
     fn test_unprocesser(input: Vec<String>, expected: Vec<String>) {
         let up = UnProcesser { args: input.clone() };
-        let out = up.unprocess();
+        let out = up.unprocess().0;
         validate_processer_test(&input, &expected, &out);
     }
 
@@ -133,7 +138,7 @@ mod tests {
             let input = cmd::from_string(k);
             let expected = cmd::from_string(v);
             let up = UnProcesser { args: input.clone() };
-            let out = up.get_args();
+            let out = up.get_args().0;
             validate_processer_test(&input, &expected, &out);
         }
     }

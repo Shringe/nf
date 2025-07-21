@@ -5,9 +5,9 @@ mod cli;
 mod mode;
 mod init;
 mod completions;
+mod nest;
 
 use clap::Parser;
-
 use cli::Args;
 
 fn main() {

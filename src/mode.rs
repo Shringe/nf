@@ -1,5 +1,5 @@
 use clap::Subcommand;
-use crate::{cli::Actionable, config, expansions::{processer, unprocesser}, init};
+use crate::{cli::Actionable, config, expansions::{processer, unprocesser}, init, nest};
 
 #[derive(Debug, Subcommand)]
 pub enum Mode {
@@ -15,6 +15,10 @@ pub enum Mode {
     Init(init::Init),
     /// Manages the config, usually found in ~/.config/nf
     Config(config::command::Config),
+    /// Moves ./flake.* -> ./flake/flake.*. Useful to keep CWD out of the Nix store.
+    Nest(nest::Nest),
+    /// Moves ./flake/flake.* -> ./flake.*. Useful to put CWD back into the Nix store.
+    Unnest(nest::UnNest),
 }
 
 impl Actionable for Mode {
@@ -26,6 +30,8 @@ impl Actionable for Mode {
             Mode::Reverse(reverse) => reverse.perform(debug),
             Mode::Init(init) => init.perform(debug),
             Mode::Config(config) => config.perform(debug),
+            Mode::Nest(nest) => nest.perform(debug),
+            Mode::Unnest(unnest) => unnest.perform(debug),
         };
     }
 }

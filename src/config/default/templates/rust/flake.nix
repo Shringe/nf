@@ -16,7 +16,7 @@
           version = "0.1";
 
           cargoLock.lockFile = ./Cargo.lock;
-          src = pkgs.lib.cleanSource ./.;
+          src = pkgs.lib.cleanSource self;
         };
 
         devshells.default = pkgs.mkShell {

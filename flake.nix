@@ -13,7 +13,7 @@
 
         nf = pkgs.rustPlatform.buildRustPackage {
           pname = "nf";
-          version = "1.5.1";
+          version = "1.6.0";
 
           cargoLock.lockFile = ./Cargo.lock;
           src = pkgs.lib.cleanSource self;

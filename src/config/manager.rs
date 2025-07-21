@@ -14,7 +14,7 @@ pub fn map_templates() -> io::Result<HashMap<String, PathBuf>> {
         let entry = entry?;
         let full_path = entry.path().canonicalize()?;
         
-        if full_path.is_file() {
+        if full_path.is_dir() {
             if let Some(filename) = entry.file_name().to_str() {
                 templates.insert(filename.to_string(), full_path);
             }

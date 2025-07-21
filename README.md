@@ -2,7 +2,7 @@
 ### Commands
 - [x] nf config add
 - [x] nf config remove
-- [ ] nf nest/unnest, Allowing easy moving of flake.* to ./flake/flake.*
+- [x] nf nest/unnest, Allowing easy moving of flake.* to ./flake/flake.*
 ### Functionality
 - [x] Add analyze ability that can unprocess nf expansions for demonstration
 - [x] implement nf config file with default shell override

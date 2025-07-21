@@ -35,20 +35,14 @@ pub fn get_template_dir() -> PathBuf {
 #[derive(Debug, Deserialize)]
 pub struct ConfigFile {
     pub shell: String,
-}
-
-impl Default for ConfigFile {
-    fn default() -> Self {
-        let file = get_config_dir().join("config.toml");
-        Self::new(&file)
-    }
+    pub nested_flakes: bool,
 }
 
 impl ConfigFile {
-    pub fn new(file: &PathBuf) -> Self {
-        assert!(file.is_file(), "This is not a file!");
-        let contents = fs::read_to_string(file).expect("Couldn't read config.toml!");
-        let config = toml::from_str(&contents).expect("Couldn't parse config.toml!");
-        config
+    pub fn new() -> anyhow::Result<Self> {
+        let file = get_config_dir().join("config.toml");
+        let contents = fs::read_to_string(file)?;
+        let config = toml::from_str(&contents)?;
+        Ok(config)
     }
 }

@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use clap::Args;
 
 use crate::{cli::Actionable, config::manager::ConfigFile};
@@ -12,6 +14,11 @@ fn format_nixpkg(pkg: &str) -> String {
     } else {
         format!("nixpkgs#{}", pkg)
     }
+}
+
+/// Determines whether there is a nested flake in the CWD
+fn is_nested_flake() -> bool {
+    Path::new("./flake/flake.nix").is_file()
 }
 
 pub trait Processer {
@@ -84,17 +91,22 @@ pub struct Shell {
 impl Processer for Shell {
     fn process(&self) -> Vec<String> {
         let mut out = cmd::from_string("nix shell");
+        let config = ConfigFile::new();
         
         if !self.args.is_empty() {
-            out.push(format_nixpkg(&self.args[0]));
-            out.extend_from_slice(&self.args[1..]);
-        }
+           out.push(format_nixpkg(&self.args[0]));
+           out.extend_from_slice(&self.args[1..]);
+        } else if let Ok(c) = &config {
+            if c.nested_flakes && is_nested_flake() {
+               out.push("./flake".to_string());
+            }
+        };
         
         if !cmd::contains_flag(&self.args, "--command") {
             out.push("--command".to_string());
 
-            let shell = if self.shell == "config" {
-                ConfigFile::default().shell
+            let shell = if let Ok(c) = config {
+                c.shell
             } else {
                 self.shell.clone()
             };
@@ -127,17 +139,22 @@ pub struct Develop {
 impl Processer for Develop {
     fn process(&self) -> Vec<String> {
         let mut out = cmd::from_string("nix develop");
+        let config = ConfigFile::new();
         
         if !self.args.is_empty() {
-            out.push(format_nixpkg(&self.args[0]));
-            out.extend_from_slice(&self.args[1..]);
-        }
+           out.push(format_nixpkg(&self.args[0]));
+           out.extend_from_slice(&self.args[1..]);
+        } else if let Ok(c) = &config {
+            if c.nested_flakes && is_nested_flake() {
+               out.push("./flake".to_string());
+            }
+        };
         
         if !cmd::contains_flag(&self.args, "--command") {
             out.push("--command".to_string());
 
-            let shell = if self.shell == "config" {
-                ConfigFile::default().shell
+            let shell = if let Ok(c) = config {
+                c.shell
             } else {
                 self.shell.clone()
             };

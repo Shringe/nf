@@ -10,19 +10,25 @@
         pkgs = import nixpkgs {
           inherit system;
         };
+
+        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+        name = cargoToml.package.name;
+        version = cargoToml.package.version;
       in {
         packages.default = pkgs.rustPlatform.buildRustPackage {
-          pname = "example";
-          version = "0.1";
+          inherit name version;
 
           cargoLock.lockFile = ./Cargo.lock;
-          src = pkgs.lib.cleanSource self;
+          src = self;
         };
 
-        devshells.default = pkgs.mkShell {
+        devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             git
+            rustc
+            rustfmt
             cargo
+            rust-analyzer
           ];
         };
       }

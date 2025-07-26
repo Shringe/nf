@@ -1,3 +1,3 @@
 pub mod command;
-pub mod manager;
 mod initialize;
+pub mod manager;

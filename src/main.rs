@@ -2,9 +2,9 @@ mod config;
 mod expansions;
 
 mod cli;
-mod mode;
-mod init;
 mod completions;
+mod init;
+mod mode;
 mod nest;
 
 use clap::Parser;

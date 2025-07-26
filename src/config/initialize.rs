@@ -23,7 +23,7 @@ fn init_recursive(from: &Dir<'_>, to: &PathBuf) -> Result<()> {
                 let to = to.join(dir.path().file_name().unwrap());
                 fs::create_dir(&to)?;
                 init_recursive(dir, &to)?;
-            },
+            }
             DirEntry::File(file) => init_file(&file, &to)?,
         }
     }

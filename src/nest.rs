@@ -42,21 +42,21 @@ impl Actionable for UnNest {
             if Path::new("flake/flake.nix").exists() {
                 println!("flake/flake.nix -> flake.nix");
             }
-            
+
             if Path::new("flake/flake.lock").exists() {
                 println!("flake/flake.lock -> flake.lock");
             }
-            
+
             println!("rmdir ./flake");
         } else {
             if Path::new("flake/flake.nix").exists() {
                 fs::rename("flake/flake.nix", "flake.nix").expect("Failed to move flake.nix");
             }
-            
+
             if Path::new("flake/flake.lock").exists() {
                 fs::rename("flake/flake.lock", "flake.lock").expect("Failed to move flake.lock");
             }
-            
+
             fs::remove_dir("flake").expect("Failed to remove ./flake!");
         }
     }

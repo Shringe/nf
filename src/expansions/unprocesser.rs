@@ -17,7 +17,10 @@ impl Actionable for UnProcesser {
         let (expanded, shell) = self.unprocess();
 
         if let Some(s) = shell {
-            println!("You can avoid passing --shell {} by setting shell = \"{}\" in ~/.config/nf/config.toml", s, s);
+            println!(
+                "You can avoid passing --shell {} by setting shell = \"{}\" in ~/.config/nf/config.toml",
+                s, s
+            );
         }
         println!("> {}", cmd::to_string(&expanded));
     }
@@ -34,7 +37,7 @@ impl UnProcesser {
         out.push("nf".to_string());
         out.push(self.args[1].to_owned());
         out.extend(args);
-        
+
         (out, shell)
     }
 
@@ -67,20 +70,20 @@ impl UnProcesser {
             if a == "--" {
                 to_program = true;
                 continue;
-            } if looking_for_pkg {
+            }
+            if looking_for_pkg {
                 if let Some(p) = a.strip_prefix("nixpkgs#") {
                     pkg = Some(p.to_string());
                     looking_for_pkg = false;
                     continue;
                 }
-            }            
+            }
 
             if to_program {
                 program_args.push(a.to_string());
             } else {
                 nix_args.push(a.to_string());
             }
-
         }
 
         if !nix_args.is_empty() {
@@ -114,7 +117,9 @@ mod tests {
     use super::UnProcesser;
 
     fn test_unprocesser(input: Vec<String>, expected: Vec<String>) {
-        let up = UnProcesser { args: input.clone() };
+        let up = UnProcesser {
+            args: input.clone(),
+        };
         let out = up.unprocess().0;
         validate_processer_test(&input, &expected, &out);
     }
@@ -130,15 +135,26 @@ mod tests {
         let map = HashMap::from([
             ("nix run nixpkgs#eza", "eza"),
             ("nix run nixpkgs#eza to_nix_after", "eza to_nix_after --"),
-            ("nix run to_nix_before nixpkgs#eza to_nix_after", "eza to_nix_before to_nix_after --"),
-            ("nix run to_nix_before nixpkgs#eza to_nix_after -- to_program", "eza to_nix_before to_nix_after -- to_program"),
-            ("nix run nixpkgs#eza -- to_program_one to_program_two", "eza to_program_one to_program_two"),
+            (
+                "nix run to_nix_before nixpkgs#eza to_nix_after",
+                "eza to_nix_before to_nix_after --",
+            ),
+            (
+                "nix run to_nix_before nixpkgs#eza to_nix_after -- to_program",
+                "eza to_nix_before to_nix_after -- to_program",
+            ),
+            (
+                "nix run nixpkgs#eza -- to_program_one to_program_two",
+                "eza to_program_one to_program_two",
+            ),
         ]);
 
         for (k, v) in map {
             let input = cmd::from_string(k);
             let expected = cmd::from_string(v);
-            let up = UnProcesser { args: input.clone() };
+            let up = UnProcesser {
+                args: input.clone(),
+            };
             let out = up.get_args().0;
             validate_processer_test(&input, &expected, &out);
         }
@@ -151,7 +167,10 @@ mod tests {
             ("nix run nixpkgs#eza", "nf run eza"),
             ("nix run to_nix nixpkgs#eza", "nf run eza to_nix --"),
             ("nix run nixpkgs#eza -- to_program", "nf run eza to_program"),
-            ("nix run to_nix nixpkgs#eza -- to_program", "nf run eza to_nix -- to_program"),
+            (
+                "nix run to_nix nixpkgs#eza -- to_program",
+                "nf run eza to_nix -- to_program",
+            ),
         ]);
 
         test_unprocesser_map(map);
@@ -164,11 +183,26 @@ mod tests {
             ("nix shell nixpkgs#hello", "nf shell hello"),
             ("nix shell to_nix nixpkgs#eza", "nf shell eza to_nix --"),
             ("nix shell nixpkgs#eza to_nix", "nf shell eza to_nix --"),
-            ("nix shell nixpkgs#eza -- to_program", "nf shell eza to_program"),
-            ("nix shell to_nix_one nixpkgs#eza to_nix_two", "nf shell eza to_nix_one to_nix_two --"),
-            ("nix shell to_nix_one nixpkgs#eza to_nix_two -- to_program", "nf shell eza to_nix_one to_nix_two -- to_program"),
-            ("nix shell nixpkgs#eza --command fish -- to_program", "nf shell --shell fish eza to_program"),
-            ("nix shell --command fish nixpkgs#eza", "nf shell --shell fish eza"),
+            (
+                "nix shell nixpkgs#eza -- to_program",
+                "nf shell eza to_program",
+            ),
+            (
+                "nix shell to_nix_one nixpkgs#eza to_nix_two",
+                "nf shell eza to_nix_one to_nix_two --",
+            ),
+            (
+                "nix shell to_nix_one nixpkgs#eza to_nix_two -- to_program",
+                "nf shell eza to_nix_one to_nix_two -- to_program",
+            ),
+            (
+                "nix shell nixpkgs#eza --command fish -- to_program",
+                "nf shell --shell fish eza to_program",
+            ),
+            (
+                "nix shell --command fish nixpkgs#eza",
+                "nf shell --shell fish eza",
+            ),
         ]);
 
         test_unprocesser_map(map);
@@ -181,11 +215,26 @@ mod tests {
             ("nix develop nixpkgs#hello", "nf develop hello"),
             ("nix develop to_nix nixpkgs#eza", "nf develop eza to_nix --"),
             ("nix develop nixpkgs#eza to_nix", "nf develop eza to_nix --"),
-            ("nix develop nixpkgs#eza -- to_program", "nf develop eza to_program"),
-            ("nix develop to_nix_one nixpkgs#eza to_nix_two", "nf develop eza to_nix_one to_nix_two --"),
-            ("nix develop to_nix_one nixpkgs#eza to_nix_two -- to_program", "nf develop eza to_nix_one to_nix_two -- to_program"),
-            ("nix develop nixpkgs#eza --command fish -- to_program", "nf develop --shell fish eza to_program"),
-            ("nix develop --command fish nixpkgs#eza", "nf develop --shell fish eza"),
+            (
+                "nix develop nixpkgs#eza -- to_program",
+                "nf develop eza to_program",
+            ),
+            (
+                "nix develop to_nix_one nixpkgs#eza to_nix_two",
+                "nf develop eza to_nix_one to_nix_two --",
+            ),
+            (
+                "nix develop to_nix_one nixpkgs#eza to_nix_two -- to_program",
+                "nf develop eza to_nix_one to_nix_two -- to_program",
+            ),
+            (
+                "nix develop nixpkgs#eza --command fish -- to_program",
+                "nf develop --shell fish eza to_program",
+            ),
+            (
+                "nix develop --command fish nixpkgs#eza",
+                "nf develop --shell fish eza",
+            ),
         ]);
 
         test_unprocesser_map(map);

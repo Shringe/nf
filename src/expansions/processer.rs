@@ -55,9 +55,9 @@ impl Processer for Run {
 
         let mut out = Vec::new();
         out.extend(prefix);
-        
+
         out.push(format_nixpkg(&self.args[0]));
-        
+
         if self.args.len() > 1 {
             if !cmd::contains_flag(&self.args, "--") {
                 out.push("--".to_string());
@@ -65,7 +65,7 @@ impl Processer for Run {
 
             out.extend_from_slice(&self.args[1..]);
         }
-        
+
         out
     }
 }
@@ -92,16 +92,16 @@ impl Processer for Shell {
     fn process(&self) -> Vec<String> {
         let mut out = cmd::from_string("nix shell");
         let config = ConfigFile::new();
-        
+
         if !self.args.is_empty() {
-           out.push(format_nixpkg(&self.args[0]));
-           out.extend_from_slice(&self.args[1..]);
+            out.push(format_nixpkg(&self.args[0]));
+            out.extend_from_slice(&self.args[1..]);
         } else if let Ok(c) = &config {
             if c.nested_flakes && is_nested_flake() {
-               out.push("./flake".to_string());
+                out.push("./flake".to_string());
             }
         };
-        
+
         if !cmd::contains_flag(&self.args, "--command") {
             out.push("--command".to_string());
 
@@ -113,7 +113,7 @@ impl Processer for Shell {
 
             out.push(shell);
         }
-        
+
         out
     }
 }
@@ -140,16 +140,16 @@ impl Processer for Develop {
     fn process(&self) -> Vec<String> {
         let mut out = cmd::from_string("nix develop");
         let config = ConfigFile::new();
-        
+
         if !self.args.is_empty() {
-           out.push(format_nixpkg(&self.args[0]));
-           out.extend_from_slice(&self.args[1..]);
+            out.push(format_nixpkg(&self.args[0]));
+            out.extend_from_slice(&self.args[1..]);
         } else if let Ok(c) = &config {
             if c.nested_flakes && is_nested_flake() {
-               out.push("./flake".to_string());
+                out.push("./flake".to_string());
             }
         };
-        
+
         if !cmd::contains_flag(&self.args, "--command") {
             out.push("--command".to_string());
 
@@ -161,7 +161,7 @@ impl Processer for Develop {
 
             out.push(shell);
         }
-        
+
         out
     }
 }
@@ -176,7 +176,10 @@ impl Actionable for Develop {
 mod tests {
     use std::collections::HashMap;
 
-    use crate::{expansions::cmd::{self, validate_processer_test}, mode::Mode};
+    use crate::{
+        expansions::cmd::{self, validate_processer_test},
+        mode::Mode,
+    };
 
     use super::{Develop, Processer, Run, Shell};
 
@@ -189,17 +192,25 @@ mod tests {
     fn test_processer_any(input: Vec<String>, expected: Vec<String>, mode: &Mode) {
         match mode {
             Mode::Run(_) => {
-                let p = Run { args: input.clone() };
+                let p = Run {
+                    args: input.clone(),
+                };
                 test_processer(input, expected, p);
-            },
+            }
             Mode::Shell(_) => {
-                let p = Shell { args: input.clone(), shell: SHELL.to_string() };
+                let p = Shell {
+                    args: input.clone(),
+                    shell: SHELL.to_string(),
+                };
                 test_processer(input, expected, p);
-            },
+            }
             Mode::Develop(_) => {
-                let p = Develop { args: input.clone(), shell: SHELL.to_string() };
+                let p = Develop {
+                    args: input.clone(),
+                    shell: SHELL.to_string(),
+                };
                 test_processer(input, expected, p);
-            },
+            }
             _ => panic!("Wrong mode!"),
         };
     }
@@ -209,7 +220,7 @@ mod tests {
             test_processer_any(cmd::from_string(k), cmd::from_string(v), &mode);
         }
     }
-    
+
     #[test]
     fn nix_run() {
         let map = HashMap::from([
@@ -218,12 +229,15 @@ mod tests {
             ("eza to_nix --", "nix run nixpkgs#eza to_nix --"),
             ("eza to_program", "nix run nixpkgs#eza -- to_program"),
             ("eza -- to_program", "nix run nixpkgs#eza -- to_program"),
-            ("eza to_nix -- to_program", "nix run nixpkgs#eza to_nix -- to_program")
+            (
+                "eza to_nix -- to_program",
+                "nix run nixpkgs#eza to_nix -- to_program",
+            ),
         ]);
 
         test_processer_map(map, Mode::Run(Run { args: Vec::new() }));
     }
-    
+
     #[test]
     fn nix_shell() {
         let map = HashMap::from([
@@ -234,7 +248,13 @@ mod tests {
             ("--command bash", "nix shell --command bash"),
         ]);
 
-        test_processer_map(map, Mode::Shell(Shell { args: Vec::new(), shell: SHELL.to_string() }));
+        test_processer_map(
+            map,
+            Mode::Shell(Shell {
+                args: Vec::new(),
+                shell: SHELL.to_string(),
+            }),
+        );
     }
 
     #[test]
@@ -247,6 +267,12 @@ mod tests {
             ("--command bash", "nix develop --command bash"),
         ]);
 
-        test_processer_map(map, Mode::Develop(Develop { args: Vec::new(), shell: SHELL.to_string() }));
+        test_processer_map(
+            map,
+            Mode::Develop(Develop {
+                args: Vec::new(),
+                shell: SHELL.to_string(),
+            }),
+        );
     }
 }

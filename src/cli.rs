@@ -5,7 +5,7 @@ use crate::mode::Mode;
 /// This is used recursively to process the argument tree
 pub trait Actionable {
     /// Performs the action
-    fn perform(&self, debug: bool);
+    fn perform(&self, dryrun: bool);
 }
 
 /// Simple program inspired by nix-helper that allows for fancy nix command expansions.
@@ -20,15 +20,13 @@ pub struct Args {
     /// Enables extra debug info and does not actually execute any commands or make changes on
     /// disk.
     #[arg(long)]
-    debug: bool,
+    dryrun: bool,
 }
 
 impl Args {
     pub fn handle(&self) {
-        if self.debug {
-            println!("{:#?}", self);
-        }
+        log::debug!("Cli args: {:?}", self);
 
-        self.mode.perform(self.debug);
+        self.mode.perform(self.dryrun);
     }
 }

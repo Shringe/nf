@@ -27,16 +27,16 @@ pub enum Mode {
 }
 
 impl Actionable for Mode {
-    fn perform(&self, debug: bool) {
+    fn perform(&self, dryrun: bool) {
         match self {
-            Mode::Run(run) => run.perform(debug),
-            Mode::Shell(shell) => shell.perform(debug),
-            Mode::Develop(develop) => develop.perform(debug),
-            Mode::Reverse(reverse) => reverse.perform(debug),
-            Mode::Init(init) => init.perform(debug),
-            Mode::Config(config) => config.perform(debug),
-            Mode::Nest(nest) => nest.perform(debug),
-            Mode::Unnest(unnest) => unnest.perform(debug),
+            Mode::Run(run) => run.perform(dryrun),
+            Mode::Shell(shell) => shell.perform(dryrun),
+            Mode::Develop(develop) => develop.perform(dryrun),
+            Mode::Reverse(reverse) => reverse.perform(dryrun),
+            Mode::Init(init) => init.perform(dryrun),
+            Mode::Config(config) => config.perform(dryrun),
+            Mode::Nest(nest) => nest.perform(dryrun),
+            Mode::Unnest(unnest) => unnest.perform(dryrun),
         };
     }
 }

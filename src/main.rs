@@ -11,6 +11,7 @@ use clap::Parser;
 use cli::Args;
 
 fn main() {
+    env_logger::init();
     let args = Args::parse();
     args.handle();
 }

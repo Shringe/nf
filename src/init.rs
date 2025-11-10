@@ -85,20 +85,19 @@ impl Actionable for Init {
         let obstructions = obstructed_inits(&operations).expect("Couldn't handle obstructions!");
         obstructions
             .iter()
-            .for_each(|o| println!("{:?} already exists!", o));
+            .for_each(|o| log::warn!("{:?} already exists!", o));
 
         if !self.force && !obstructions.is_empty() {
-            println!(
-                "The template couldn't be initialized because some files already exist. Pass --force to initialize anyway, overwriting conflicting files."
-            );
+            let msg = "The template couldn't be initialized because some files already exist. Pass --force to initialize anyway, overwriting conflicting files.";
+            log::error!("{}", msg);
+            eprintln!("{}", msg);
             exit(1);
         }
 
-        if dryrun {
-            dbg!(&templates);
-            dbg!(&operations);
-            dbg!(&obstructions);
-        } else {
+        log::debug!("Templates: {:?}", templates);
+        log::debug!("Operations: {:?}", operations);
+        log::debug!("obstructions: {:?}", obstructions);
+        if !dryrun {
             // cp -r $temeplate/* ./
             initialize_template(&operations).unwrap();
         }

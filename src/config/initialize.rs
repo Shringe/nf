@@ -35,10 +35,8 @@ fn init_recursive(from: &Dir<'_>, to: &PathBuf) -> Result<()> {
 pub fn initialize_defaults(dryrun: bool) {
     let dest = get_config_dir();
 
-    if dryrun {
-        println!("Attempting to generate default config at {:?}", dest);
-        println!("Warning! This command does actually generate the config, even in dryrun mode.");
-    }
+    log::debug!("Attempting to generate default config at {:?}", dest);
+    log::warn!("Warning! This command does actually generate the config, even in dryrun mode.");
 
     assert!(!dest.is_dir(), "Configuration directory already exists!");
     fs::create_dir(&dest).expect("Couldn't create empty configuration directory!");
@@ -50,9 +48,8 @@ pub fn initialize_defaults(dryrun: bool) {
 pub fn destroy_configuration(dryrun: bool) -> Result<()> {
     let cdir = get_config_dir();
 
-    if dryrun {
-        println!("Removing all of {:?}", cdir);
-    } else {
+    log::debug!("Removing all of {:?}", cdir);
+    if !dryrun {
         fs::remove_dir_all(cdir)?;
     }
 

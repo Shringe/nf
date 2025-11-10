@@ -16,9 +16,8 @@ impl Actionable for Completions {
         let mut app = cli::Args::command();
         let mut buf = io::stdout();
 
-        if dryrun {
-            println!("Generated completions");
-        } else {
+        log::info!("Generating completions");
+        if !dryrun {
             clap_complete::generate(self.shell, &mut app, "nf", &mut buf);
         }
     }

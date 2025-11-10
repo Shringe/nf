@@ -18,11 +18,11 @@ struct Add {
 }
 
 impl Actionable for Add {
-    fn perform(&self, debug: bool) {
+    fn perform(&self, dryrun: bool) {
         let dest = get_config_dir().join(&self.name);
         assert!(!dest.is_file(), "That template already exists!");
 
-        if debug {
+        if dryrun {
             println!("{:?} -> {:?}", self.template, dest);
         } else {
             fs::copy(&self.template, dest).expect("Couldn't copy template file!");
@@ -37,10 +37,10 @@ struct Remove {
 }
 
 impl Actionable for Remove {
-    fn perform(&self, debug: bool) {
+    fn perform(&self, dryrun: bool) {
         let target = get_config_dir().join(&self.template);
 
-        if debug {
+        if dryrun {
             println!("Deleting template {} at {:?}", self.template, target);
         } else {
             fs::remove_file(&target).expect("Failed to delete template!");
@@ -52,8 +52,8 @@ impl Actionable for Remove {
 struct Create;
 
 impl Actionable for Create {
-    fn perform(&self, debug: bool) {
-        initialize::initialize_defaults(debug);
+    fn perform(&self, dryrun: bool) {
+        initialize::initialize_defaults(dryrun);
     }
 }
 
@@ -61,8 +61,8 @@ impl Actionable for Create {
 struct Destroy;
 
 impl Actionable for Destroy {
-    fn perform(&self, debug: bool) {
-        initialize::destroy_configuration(debug).expect("Failed to destroy configuration.");
+    fn perform(&self, dryrun: bool) {
+        initialize::destroy_configuration(dryrun).expect("Failed to destroy configuration.");
     }
 }
 
@@ -81,13 +81,13 @@ enum Action {
 }
 
 impl Actionable for Action {
-    fn perform(&self, debug: bool) {
+    fn perform(&self, dryrun: bool) {
         match self {
-            Action::Add(add) => add.perform(debug),
-            Action::Remove(remove) => remove.perform(debug),
-            Action::Create(create) => create.perform(debug),
-            Action::Destroy(destroy) => destroy.perform(debug),
-            Action::Completions(completions) => completions.perform(debug),
+            Action::Add(add) => add.perform(dryrun),
+            Action::Remove(remove) => remove.perform(dryrun),
+            Action::Create(create) => create.perform(dryrun),
+            Action::Destroy(destroy) => destroy.perform(dryrun),
+            Action::Completions(completions) => completions.perform(dryrun),
         };
     }
 }
@@ -100,7 +100,7 @@ pub struct Config {
 }
 
 impl Actionable for Config {
-    fn perform(&self, debug: bool) {
-        self.action.perform(debug);
+    fn perform(&self, dryrun: bool) {
+        self.action.perform(dryrun);
     }
 }

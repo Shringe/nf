@@ -76,7 +76,7 @@ pub struct Init {
 }
 
 impl Actionable for Init {
-    fn perform(&self, debug: bool) {
+    fn perform(&self, dryrun: bool) {
         let templates = map_templates().expect("Couldn't map templates!");
         let template = templates.get(&self.template).expect("Template not found!");
 
@@ -94,7 +94,7 @@ impl Actionable for Init {
             exit(1);
         }
 
-        if debug {
+        if dryrun {
             dbg!(&templates);
             dbg!(&operations);
             dbg!(&obstructions);

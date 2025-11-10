@@ -17,7 +17,7 @@ pub struct Args {
     #[command(subcommand)]
     mode: Mode,
 
-    /// Enables extra debug info and does not actually execute any commands or make changes on
+    /// Enables extra dryrun info and does not actually execute any commands or make changes on
     /// disk.
     #[arg(long)]
     dryrun: bool,

@@ -12,11 +12,11 @@ pub struct Completions {
 }
 
 impl Actionable for Completions {
-    fn perform(&self, debug: bool) {
+    fn perform(&self, dryrun: bool) {
         let mut app = cli::Args::command();
         let mut buf = io::stdout();
 
-        if debug {
+        if dryrun {
             println!("Generated completions");
         } else {
             clap_complete::generate(self.shell, &mut app, "nf", &mut buf);

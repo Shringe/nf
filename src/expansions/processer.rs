@@ -26,11 +26,11 @@ pub trait Processer {
     fn process(&self) -> Vec<String>;
 
     /// Processes and executes the shell expansion.
-    /// If debug == true, then just println!() the expansion instead.
-    fn execute(&self, debug: bool) {
+    /// If dryrun == true, then just println!() the expansion instead.
+    fn execute(&self, dryrun: bool) {
         let cmd = self.process();
 
-        if debug {
+        if dryrun {
             println!("> {}", cmd::to_string(&cmd));
         } else {
             cmd::execute_to_stdout(&cmd);
@@ -71,8 +71,8 @@ impl Processer for Run {
 }
 
 impl Actionable for Run {
-    fn perform(&self, debug: bool) {
-        self.execute(debug);
+    fn perform(&self, dryrun: bool) {
+        self.execute(dryrun);
     }
 }
 
@@ -119,8 +119,8 @@ impl Processer for Shell {
 }
 
 impl Actionable for Shell {
-    fn perform(&self, debug: bool) {
-        self.execute(debug);
+    fn perform(&self, dryrun: bool) {
+        self.execute(dryrun);
     }
 }
 
@@ -167,8 +167,8 @@ impl Processer for Develop {
 }
 
 impl Actionable for Develop {
-    fn perform(&self, debug: bool) {
-        self.execute(debug);
+    fn perform(&self, dryrun: bool) {
+        self.execute(dryrun);
     }
 }
 

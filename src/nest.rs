@@ -9,25 +9,28 @@ pub struct Nest;
 
 impl Actionable for Nest {
     fn perform(&self, dryrun: bool) {
-        if dryrun {
-            println!("mkdir ./flake");
+        let destination = Path::new("flake");
+        let flake_from = Path::new("flake.nix");
+        let lock_from = Path::new("flake.lock");
+        let flake_to = destination.join(flake_from);
+        let lock_to = destination.join(lock_from);
 
-            if Path::new("flake.nix").exists() {
-                println!("flake.nix -> flake/flake.nix");
+        log::debug!("Creating dir: {}", destination.display());
+        if !dryrun {
+            fs::create_dir("flake").expect("Failed to create ./flake");
+        }
+
+        if flake_from.exists() {
+            log::debug!("{} -> {}", flake_from.display(), flake_to.display());
+            if !dryrun {
+                fs::rename(flake_from, flake_to).expect("Failed to move flake.nix");
             }
+        }
 
-            if Path::new("flake.lock").exists() {
-                println!("flake.lock -> flake/flake.lock");
-            }
-        } else {
-            fs::create_dir("flake").expect("Failed to create ./flake!");
-
-            if Path::new("flake.nix").exists() {
-                fs::rename("flake.nix", "flake/flake.nix").expect("Failed to move flake.nix");
-            }
-
-            if Path::new("flake.lock").exists() {
-                fs::rename("flake.lock", "flake/flake.lock").expect("Failed to move flake.lock");
+        if lock_from.exists() {
+            log::debug!("{} -> {}", lock_from.display(), lock_to.display());
+            if !dryrun {
+                fs::rename(lock_from, lock_to).expect("Failed to move flake.lock");
             }
         }
     }
@@ -38,26 +41,29 @@ pub struct UnNest;
 
 impl Actionable for UnNest {
     fn perform(&self, dryrun: bool) {
-        if dryrun {
-            if Path::new("flake/flake.nix").exists() {
-                println!("flake/flake.nix -> flake.nix");
-            }
+        let source = Path::new("flake");
+        let flake_to = Path::new("flake.nix");
+        let lock_to = Path::new("flake.lock");
+        let flake_from = source.join(flake_to);
+        let lock_from = source.join(lock_to);
 
-            if Path::new("flake/flake.lock").exists() {
-                println!("flake/flake.lock -> flake.lock");
+        if flake_to.exists() {
+            log::debug!("{} -> {}", flake_to.display(), flake_from.display());
+            if !dryrun {
+                fs::rename(flake_to, flake_from).expect("Failed to move flake.nix");
             }
+        }
 
-            println!("rmdir ./flake");
-        } else {
-            if Path::new("flake/flake.nix").exists() {
-                fs::rename("flake/flake.nix", "flake.nix").expect("Failed to move flake.nix");
+        if lock_to.exists() {
+            log::debug!("{} -> {}", lock_to.display(), lock_from.display());
+            if !dryrun {
+                fs::rename(lock_to, lock_from).expect("Failed to move flake.lock");
             }
+        }
 
-            if Path::new("flake/flake.lock").exists() {
-                fs::rename("flake/flake.lock", "flake.lock").expect("Failed to move flake.lock");
-            }
-
-            fs::remove_dir("flake").expect("Failed to remove ./flake!");
+        log::debug!("Removing dir: {}", source.display());
+        if !dryrun {
+            fs::remove_dir(source).expect("Failed to remove ./flake");
         }
     }
 }

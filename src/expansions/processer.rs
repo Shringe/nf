@@ -30,9 +30,8 @@ pub trait Processer {
     fn execute(&self, dryrun: bool) {
         let cmd = self.process();
 
-        if dryrun {
-            println!("> {}", cmd::to_string(&cmd));
-        } else {
+        log::debug!("> {}", cmd::to_string(&cmd));
+        if !dryrun {
             cmd::execute_to_stdout(&cmd);
         }
     }

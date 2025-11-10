@@ -32,7 +32,7 @@ fn init_recursive(from: &Dir<'_>, to: &PathBuf) -> Result<()> {
 }
 
 /// Creates default configuration on disk
-pub fn initialize_defaults(dryrun: bool) {
+pub fn initialize_defaults() {
     let dest = get_config_dir();
 
     log::debug!("Attempting to generate default config at {:?}", dest);

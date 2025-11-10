@@ -53,7 +53,8 @@ struct Create;
 
 impl Actionable for Create {
     fn perform(&self, dryrun: bool) {
-        initialize::initialize_defaults(dryrun);
+        if dryrun {}
+        initialize::initialize_defaults();
     }
 }
 

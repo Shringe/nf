@@ -32,12 +32,12 @@ fn init_recursive(from: &Dir<'_>, to: &PathBuf) -> Result<()> {
 }
 
 /// Creates default configuration on disk
-pub fn initialize_defaults(debug: bool) {
+pub fn initialize_defaults(dryrun: bool) {
     let dest = get_config_dir();
 
-    if debug {
+    if dryrun {
         println!("Attempting to generate default config at {:?}", dest);
-        println!("Warning! This command does actually generate the config, even in debug mode.");
+        println!("Warning! This command does actually generate the config, even in dryrun mode.");
     }
 
     assert!(!dest.is_dir(), "Configuration directory already exists!");
@@ -47,10 +47,10 @@ pub fn initialize_defaults(debug: bool) {
 }
 
 /// Destroys any existing configuration
-pub fn destroy_configuration(debug: bool) -> Result<()> {
+pub fn destroy_configuration(dryrun: bool) -> Result<()> {
     let cdir = get_config_dir();
 
-    if debug {
+    if dryrun {
         println!("Removing all of {:?}", cdir);
     } else {
         fs::remove_dir_all(cdir)?;

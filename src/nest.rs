@@ -8,8 +8,8 @@ use crate::cli::Actionable;
 pub struct Nest;
 
 impl Actionable for Nest {
-    fn perform(&self, debug: bool) {
-        if debug {
+    fn perform(&self, dryrun: bool) {
+        if dryrun {
             println!("mkdir ./flake");
 
             if Path::new("flake.nix").exists() {
@@ -37,8 +37,8 @@ impl Actionable for Nest {
 pub struct UnNest;
 
 impl Actionable for UnNest {
-    fn perform(&self, debug: bool) {
-        if debug {
+    fn perform(&self, dryrun: bool) {
+        if dryrun {
             if Path::new("flake/flake.nix").exists() {
                 println!("flake/flake.nix -> flake.nix");
             }

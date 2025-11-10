@@ -12,8 +12,8 @@ pub struct UnProcesser {
 }
 
 impl Actionable for UnProcesser {
-    fn perform(&self, debug: bool) {
-        if debug {} // Gets rid of the warning since debug is not used here
+    fn perform(&self, dryrun: bool) {
+        if dryrun {} // Gets rid of the warning since dryrun is not used here
         let (expanded, shell) = self.unprocess();
 
         if let Some(s) = shell {

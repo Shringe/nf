@@ -31,7 +31,9 @@ pub trait Processer {
         let cmd = self.process();
 
         log::debug!("> {}", cmd::to_string(&cmd));
-        if !dryrun {
+        if dryrun {
+            cmd::finish(&cmd);
+        } else {
             cmd::execute_to_stdout(&cmd);
         }
     }

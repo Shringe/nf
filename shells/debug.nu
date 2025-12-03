@@ -14,7 +14,7 @@ def main [...raw_args: string] {
     "nix" => { nix ...$args }
     "exec" => { exec ...$args }
     _ => {
-      print $"Unrecognized or supported command \"($command)\", exiting."
+      print --stderr $"Unrecognized command \"($command)\". Exiting."
       exit 1
     }
   }

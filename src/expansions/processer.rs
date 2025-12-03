@@ -21,13 +21,18 @@ fn is_nested_flake() -> bool {
     Path::new("./flake/flake.nix").is_file()
 }
 
+/// Determines whether already in nix shell or nix devshell
+fn is_in_shell() -> Result<bool, std::env::VarError> {
+    Ok(std::env::var("IN_NIX_SHELL")? == "impure".to_string())
+}
+
 /// Functionality for both nix shell and develop
 fn process_shell_develop(args: &Vec<String>, shell: &String, is_develop: bool) -> Vec<String> {
     let config = ConfigFile::new();
-    let mut out = cmd::from_string(match is_develop {
-        true => "nix develop",
-        false => "nix shell",
-    });
+    let mut out = Vec::with_capacity(2);
+
+    out.push("nix".to_string());
+    out.push((if is_develop { "develop" } else { "shell" }).to_string());
 
     if !args.is_empty() {
         out.push(format_nixpkg(&args[0]));
@@ -64,6 +69,15 @@ pub trait Processer {
 
         log::debug!("> {}", cmd::to_string(&cmd));
         if dryrun {
+            let cmd = if is_in_shell() == Ok(true) {
+                let mut out = Vec::with_capacity(1 + cmd.len());
+                out.push("exec".to_string());
+                out.extend(cmd);
+                out
+            } else {
+                cmd
+            };
+
             cmd::finish(&cmd);
         } else {
             cmd::execute_to_stdout(&cmd);

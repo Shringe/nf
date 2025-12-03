@@ -34,3 +34,8 @@ pub fn contains_flag(args: &Vec<String>, flag: &str) -> bool {
 pub fn execute_to_stdout(args: &Vec<String>) {
     let _ = Command::new(&args[0]).args(&args[1..]).exec(); // This replaces the current process
 }
+
+/// Prints the finished command to stdout
+pub fn finish(args: &Vec<String>) {
+    println!("{}", args.join(" "));
+}

@@ -17,8 +17,7 @@ pub struct Args {
     #[command(subcommand)]
     mode: Mode,
 
-    /// Enables extra dryrun info and does not actually execute any commands or make changes on
-    /// disk.
+    /// Does not execute any commands or make changes to disk. Instead, processer commands (expansions) will return their fully expanded shell cmd to stdout instead of executing it themselves. This can be used for greater control and integration into the interactive shell.
     #[arg(long)]
     dryrun: bool,
 }

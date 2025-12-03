@@ -21,6 +21,38 @@ fn is_nested_flake() -> bool {
     Path::new("./flake/flake.nix").is_file()
 }
 
+/// Functionality for both nix shell and develop
+fn process_shell_develop(args: &Vec<String>, shell: &String, is_develop: bool) -> Vec<String> {
+    let config = ConfigFile::new();
+    let mut out = cmd::from_string(match is_develop {
+        true => "nix develop",
+        false => "nix shell",
+    });
+
+    if !args.is_empty() {
+        out.push(format_nixpkg(&args[0]));
+        out.extend_from_slice(&args[1..]);
+    } else if let Ok(c) = &config {
+        if c.nested_flakes && is_nested_flake() {
+            out.push("./flake".to_string());
+        }
+    };
+
+    if !cmd::contains_flag(&args, "--command") {
+        out.push("--command".to_string());
+
+        let shell = if let Ok(c) = config {
+            c.shell
+        } else {
+            shell.clone()
+        };
+
+        out.push(shell);
+    }
+
+    out
+}
+
 pub trait Processer {
     /// Processes the shell expansion.
     fn process(&self) -> Vec<String>;
@@ -91,31 +123,7 @@ pub struct Shell {
 
 impl Processer for Shell {
     fn process(&self) -> Vec<String> {
-        let mut out = cmd::from_string("nix shell");
-        let config = ConfigFile::new();
-
-        if !self.args.is_empty() {
-            out.push(format_nixpkg(&self.args[0]));
-            out.extend_from_slice(&self.args[1..]);
-        } else if let Ok(c) = &config {
-            if c.nested_flakes && is_nested_flake() {
-                out.push("./flake".to_string());
-            }
-        };
-
-        if !cmd::contains_flag(&self.args, "--command") {
-            out.push("--command".to_string());
-
-            let shell = if let Ok(c) = config {
-                c.shell
-            } else {
-                self.shell.clone()
-            };
-
-            out.push(shell);
-        }
-
-        out
+        process_shell_develop(&self.args, &self.shell, false)
     }
 }
 
@@ -139,31 +147,7 @@ pub struct Develop {
 
 impl Processer for Develop {
     fn process(&self) -> Vec<String> {
-        let mut out = cmd::from_string("nix develop");
-        let config = ConfigFile::new();
-
-        if !self.args.is_empty() {
-            out.push(format_nixpkg(&self.args[0]));
-            out.extend_from_slice(&self.args[1..]);
-        } else if let Ok(c) = &config {
-            if c.nested_flakes && is_nested_flake() {
-                out.push("./flake".to_string());
-            }
-        };
-
-        if !cmd::contains_flag(&self.args, "--command") {
-            out.push("--command".to_string());
-
-            let shell = if let Ok(c) = config {
-                c.shell
-            } else {
-                self.shell.clone()
-            };
-
-            out.push(shell);
-        }
-
-        out
+        process_shell_develop(&self.args, &self.shell, true)
     }
 }
 
